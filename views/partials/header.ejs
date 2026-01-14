@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sklep Internetowy</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/general.css">
+    <link rel="stylesheet" href="/header.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-links left-section">
+            <a href="/">Home</a> 
+            <a href="/shop">Shop</a>
+            <a href="/about">About</a>
+        </div>
+
+        <div class="nav-links right-section">
+            <a href="/cart">Cart</a>
+
+            <% if (typeof user !== 'undefined' && user) { %>
+                <a href="/account" title="Twoje konto">
+                    <span style="border: 1px solid black; border-radius: 50%; padding: 5px 10px;">
+                        👤
+                    </span>
+                </a>
+            <% } else { %>
+                <a href="/login">Sign In</a>
+            <% } %>
+        </div>
+    </nav>
+
+    <main class="content-wrapper">

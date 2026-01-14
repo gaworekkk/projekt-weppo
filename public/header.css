@@ -1,0 +1,19 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--dark-background);
+    padding: 15px 20px;
+}
+
+.nav-links a {
+    color: rgb(221, 221, 221);
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
