@@ -1,0 +1,24 @@
+<%- include('partials/header.ejs') %>
+
+    <h1>Twoje Konto</h1>
+
+    <div style="border: 1px solid #ccc; padding: 20px;">
+        <h2>Witaj, <%= user.displayName || user.username %>!</h2>
+        
+        <p><strong>Twój login/email:</strong> <%= user.username %></p>
+        <p><strong>Twoja rola:</strong> <%= user.role %></p>
+
+        <h3>Opcje:</h3>
+        <ul>
+            <li><a href="#">Historia zamówień (wkrótce)</a></li>
+            <li><a href="#">Ustawienia konta (wkrótce)</a></li>
+        </ul>
+
+        <hr>
+        
+        <a href="/logout">
+            <button style="padding: 10px; background-color: #ddd;">Wyloguj się</button>
+        </a>
+    </div>
+
+<%- include('partials/footer.ejs') %>

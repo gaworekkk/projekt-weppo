@@ -1,0 +1,36 @@
+<%- include('partials/header.ejs') %>
+
+<div style="width: 300px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; text-align: center;">
+    <h2>Rejestracja</h2>
+
+    <% if (typeof message !== 'undefined') { %>
+        <div style="color: red; margin-bottom: 15px;">
+            <%= message %>
+        </div>
+    <% } %>
+
+    <form action="/register" method="POST">
+        <div style="margin-bottom: 10px;">
+            <label style="display: block; text-align: left;">Login (Email):</label>
+            <input type="text" name="txtUser" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label style="display: block; text-align: left;">Wyświetlana nazwa:</label>
+            <input type="text" name="txtName" required style="width: 100%; box-sizing: border-box;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; text-align: left;">Hasło:</label>
+            <input type="password" name="txtPwd" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 5px;">Utwórz konto</button>
+    </form>
+
+    <div style="margin-top: 20px; font-size: 0.9em;">
+        <a href="/login">Wróć do logowania</a>
+    </div>
+</div>
+
+<%- include('partials/footer.ejs') %>

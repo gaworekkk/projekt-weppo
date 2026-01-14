@@ -1,0 +1,358 @@
+:root {
+    --primary: #7841e6;
+    --primary-hover: #5915bf;
+    --dark-background: #212022;
+    --darker-background: #0d0d0e;
+}
+
+
+
+
+p {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* Reset */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: grid;
+    /* Trzy rzędy: góra(auto), środek(rozciągnij), dół(auto) */
+    grid-template-rows: auto 1fr auto;
+    /* min-height: 100vh; */
+    font-family: Roboto, Arial;
+    background-color: rgb(248, 248, 248);
+    /* background-color: white; */
+}
+
+/* Opcjonalnie, żeby mieć pewność, że main się dobrze zachowa */
+
+
+* {
+    box-sizing: border-box;
+}
+
+
+
+.hero-section {
+    height: 100vh;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+        url('images/background.avif');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    /* Poziomo */
+    align-items: center;
+    /* Pionowo */
+
+    /* 5. Styl tekstu */
+
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    /* Duży tekst */
+    /* Cień pod literami dla lepszej czytelności */
+    margin: 0;
+    color: rgb(233, 229, 239);
+}
+
+/* ABOUT */
+
+.about-text {
+    margin-left: 20px;
+}
+
+/* LOGIN VIEW */
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-card {
+    min-width: 350px;
+    background: white;
+    padding: 2rem;
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-card h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 1.5rem;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+input:focus {
+    border-color: #83bbff;
+    outline: none;
+}
+
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    ;
+}
+
+.btn-google {
+    background-color: #db4437;
+    /* Kolor Google */
+    color: white;
+
+}
+
+.btn-google:hover {
+    background-color: #c53929;
+}
+
+.divider {
+    border-top: 1px solid #eee;
+    margin: 20px 0 10px 0;
+}
+
+.text-center {
+    text-align: center;
+    color: #7b7b7b;
+    margin: 0 0 10px 0;
+    font-size: 0.8rem;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.register-link a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.register-link a:hover {
+    color: var(--primary-hover);
+}
+
+
+/* SHOP ELEMENTS */
+
+h1 {
+    margin-left: 20px;
+    margin-top: 40px;
+    color: rgb(40, 40, 40);
+}
+
+
+.products-grid {
+    display: grid;
+    /* Magiczna formuła: tworzy tyle kolumn, ile się zmieści.
+       Każda ma minimum 250px, a jeśli jest miejsce, rozciągają się (1fr) */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    /* Odstępy między kafelkami */
+    padding: 20px;
+    /* max-width: 1200px; */
+    margin: 0 auto;
+    /* Wyśrodkowanie całej siatki na stronie */
+}
+
+/* 2. POJEDYNCZY KAFELEK PRODUKTU */
+.product {
+    height: 100%;
+    background-color: #fff;
+    /* border: 1px solid #e0e0e0; */
+    border-radius: 8px;
+    /* Zaokrąglone rogi */
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    /* Delikatny cień */
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
+
+.product h3 {
+    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.product p {
+    font-size: 0.9rem;
+    margin: 0 0 15px 0;
+}
+
+.name {
+    color: #989898;
+    flex-grow: 1;
+}
+
+.price {
+    margin-top: 0;
+    font-weight: bold;
+}
+
+.product button {
+    /* margin-top: auto; */
+    margin-top: 0;
+    background-color: var(--primary);
+    transition: background-color 0.3s;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 600;
+}
+
+.product button:hover {
+    background-color: var(--primary-hover);
+}
+
+
+
+
+/* Główny kontener stopki */
+.site-footer {
+    background-color: var(--dark-background);
+    /* Ciemny granat/szary */
+    color: #ecf0f1;
+    /* Jasny szary tekst */
+    padding-top: 20px;
+    margin-top: auto;
+    /* KLUCZOWE dla przyklejenia do dołu (patrz niżej) */
+}
+
+/* Układ kolumn */
+.footer-container {
+    display: flex;
+    justify-content: center;
+    /* Równomierne odstępy */
+    gap: 60px;
+    flex-wrap: wrap;
+    /* Pozwala łamać linię na telefonach */
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Stylizacja pojedynczej kolumny */
+.footer-col {
+    flex: 0 1 300px;
+    /* Każda kolumna zajmuje tyle samo miejsca */
+    min-width: 250px;
+    /* Minimalna szerokość (dla telefonów) */
+    /* margin-bottom: 10px; */
+}
+
+.footer-col h3 {
+    color: #fff;
+    border-bottom: 2px solid var(--primary);
+    /* Ozdobna linia pod nagłówkiem */
+    padding-bottom: 10px;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.footer-col p {
+    line-height: 1.6;
+    color: #bdc3c7;
+}
+
+/* Stylizacja listy linków */
+.footer-col ul {
+    list-style: none;
+    /* Usuwa kropki */
+    padding: 0;
+}
+
+.footer-col ul li {
+    margin-bottom: 10px;
+}
+
+.footer-col ul li a {
+    color: #bdc3c7;
+    text-decoration: none;
+    transition: color 0.3s, padding-left 0.3s;
+}
+
+.footer-col ul li a:hover {
+    color: var(--primary-hover);
+    /* Kolor po najechaniu */
+    padding-left: 5px;
+    /* Efekt lekkiego przesunięcia w prawo */
+}
+
+/* Pasek na samym dole */
+.footer-bottom {
+    background-color: var(--darker-background);
+    text-align: center;
+    padding: 15px;
+    font-size: 0.9rem;
+    margin-top: 20px;
+}
+
+footer {
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
+.content-wrapper {
+    flex: 1;
+    /* To oznacza: "Zajmij całe dostępne wolne miejsce" */
+
+    /* Opcjonalnie: jeśli chcesz, by treść nie dotykała krawędzi */
+    width: 100%;
+}
