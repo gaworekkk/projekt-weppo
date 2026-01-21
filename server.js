@@ -77,6 +77,20 @@ function savePromoCodes(codes) {
     fs.writeFileSync(PROMOCODES_FILE, JSON.stringify(codes, null, 2));
 }
 
+// --- Baza kategorii ---
+const CATEGORIES_FILE = path.join(__dirname, 'categories.json'); // zmienić na prawdziwą bazę danych
+
+function getCategories() {
+    if (!fs.existsSync(CATEGORIES_FILE)) return [];
+    try {
+        return JSON.parse(fs.readFileSync(CATEGORIES_FILE, 'utf8'));
+    } catch (e) { return []; }
+}
+
+function saveCategories(categories) {
+    fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(categories, null, 2));
+}
+
 // --- Konfiguracja OAuth2 (Google) ---
 const oauth2 = new AuthorizationCode({
     client: {
@@ -349,12 +363,12 @@ app.get('/callback', async (req, res) => {
 
 // Panel Admina (tylko dla roli 'admin')
 app.get('/admin', authorize('admin'), (req, res) => {
-    res.render('admin', { products: getProducts(), promoCodes: getPromoCodes() });
+    res.render('admin', { products: getProducts(), promoCodes: getPromoCodes(), categories: getCategories() });
 });
 
 // Dodawanie produktu
 app.post('/admin/add-product', authorize('admin'), (req, res) => {
-    const { producer, name, price, quantity, description } = req.body;
+    const { producer, name, price, quantity, description, category } = req.body;
     const products = getProducts();
     
     products.push({
@@ -363,7 +377,8 @@ app.post('/admin/add-product', authorize('admin'), (req, res) => {
         name,
         price: parseFloat(price),
         quantity: parseInt(quantity),
-        description
+        description,
+        category
     });
     saveProducts(products);
 
