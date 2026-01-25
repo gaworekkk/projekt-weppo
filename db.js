@@ -23,12 +23,12 @@ async function getUsers() {
     return rows;
 }
 
-async function saveUser({ email, displayName, passwordHash, role }) {
+async function saveUser({ username, displayName, password, role }) {
     await pool.query(`
         INSERT INTO users (username, display_name, password)
         VALUES ($1, $2, $3)
         ON CONFLICT (username) DO NOTHING
-    `, [email, displayName, passwordHash]);
+    `, [username, displayName, password]);
 }
 
 /* ================= PRODUCTS ================= */

@@ -41,6 +41,7 @@ const authorizationUri = oauth2.authorizeURL({
 });
 
 // --- Funkcje pomocnicze ---
+
 function hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
 }
@@ -58,23 +59,25 @@ function authorize(...roles) {
             const user = users.find(u => u.username === username);
 
             if (user) {
+                // Sprawdź rolę tylko jeśli jakieś zostały podane
                 if (roles.length === 0 || roles.some(role => isUserInRole(user, role))) {
                     req.user = user;
                     return next();
                 }
             }
         }
+        // Jeśli brak dostępu, przekieruj do logowania
         res.redirect('/login?returnUrl=' + encodeURIComponent(req.originalUrl));
     };
 }
 
-// Udostępnianie usera we wszystkich widokach
 app.use(async (req, res, next) => {
+    // Jeśli mamy cookie, spróbujmy znaleźć użytkownika
     if (req.signedCookies.user) {
         const users = await db.getUsers();
         const username = req.signedCookies.user;
         const user = users.find(u => u.username === username);
-        res.locals.user = user || null;
+        res.locals.user = user || null; // res.locals sprawia, że zmienna 'user' jest dostępna we wszystkich widokach
     } else {
         res.locals.user = null;
     }
@@ -82,8 +85,9 @@ app.use(async (req, res, next) => {
 });
 
 // --- Routing ---
+
 app.get('/', (req, res) => {
-    res.render('home');
+    res.render('home'); // renderuje views/home.ejs
 });
 
 app.get('/shop', async (req, res) => {
@@ -95,7 +99,7 @@ app.get('/about', (req, res) => {
     res.render('about');
 });
 
-// Dodawanie do koszyka
+// Dodawanie do koszyka nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
 app.post('/cart/add/:id', (req, res) => {
     const productId = parseInt(req.params.id);
     const cart = req.signedCookies.cart || [];
@@ -130,7 +134,7 @@ app.get('/cart', async (req, res) => {
         const promo = codes.find(c => c.code === req.signedCookies.promoCode);
         if (promo) {
             appliedPromo = promo;
-            discount = promo.discount_type === 'percent' ? Math.round(total * (promo.discount_value / 100)) : promo.discount_value;
+            discount = Math.round(total * (promo.discount / 100));
             finalTotal = total - discount;
         }
     }
@@ -138,21 +142,26 @@ app.get('/cart', async (req, res) => {
     res.render('cart', { cartItems, total, appliedPromo, discount, finalTotal });
 });
 
-// Składanie zamówienia
+// Składanie zamówienia (czyszczenie koszyka)
 app.post('/cart/checkout', async (req, res) => {
     const cartIds = req.signedCookies.cart || [];
-    if (cartIds.length === 0) return res.redirect('/cart');
+    if (cartIds.length === 0) {
+        return res.redirect('/cart');
+    }
 
     const products = await db.getProducts();
-    const cartCounts = {};
     let total = 0;
     let validStock = true;
 
+    // Weryfikacja stanów magazynowych
+    // Zliczamy ilość wystąpień każdego produktu w koszyku
+        const cartCounts = {};
     cartIds.forEach(id => { cartCounts[id] = (cartCounts[id] || 0) + 1; });
 
     for (const [idStr, count] of Object.entries(cartCounts)) {
         const id = parseInt(idStr);
         const product = products.find(p => p.id === id);
+
         if (!product || product.quantity < count) {
             validStock = false;
             break;
@@ -161,9 +170,11 @@ app.post('/cart/checkout', async (req, res) => {
         product.quantity -= count;
     }
 
-    if (!validStock) return res.redirect('/cart');
+    if (!validStock) {
+        return res.redirect('/cart'); 
+    }
 
-    // Zapis zmian produktów
+    // Zapis zmian w produktach (zmniejszenie stanów)
     for (const p of products) {
         await db.saveProduct({
             name: p.name,
@@ -202,11 +213,16 @@ app.post('/cart/apply-promo', async (req, res) => {
     res.redirect('/cart');
 });
 
-// Rejestracja
-app.get('/register', (req, res) => res.render('register'));
+// Formularz rejestracji
+app.get('/register', (req, res) => {
+    res.render('register');
+});
+
+// Obsługa rejestracji
 
 app.post('/register', async (req, res) => {
     const { txtUser: username, txtPwd: password, txtName: displayName } = req.body;
+    
     const users = await db.getUsers();
 
     if (users.find(u => u.username === username)) {
@@ -214,36 +230,36 @@ app.post('/register', async (req, res) => {
     }
 
     await db.saveUser({
-        email: username,
-        displayName,
-        passwordHash: hashPassword(password),
+        username: username,
+        password: hashPassword(password),
+        displayName: displayName,
         role: ADMIN_USERS.includes(username) ? 'admin' : 'user'
     });
 
     res.redirect('/login');
 });
 
-// Logowanie
-app.get('/login', (req, res) => res.render('login', { google: authorizationUri, message: null }));
-
-app.post('/login', async (req, res) => {
-    const { txtUser: username, txtPwd: pwd } = req.body;
-    const users = await db.getUsers();
-    const user = users.find(u => u.username === username && u.password === hashPassword(pwd));
-
-    if (user) {
-        res.cookie('user', username, { signed: true });
-        const returnUrl = req.query.returnUrl || '/';
-        res.redirect(returnUrl);
-    } else {
-        res.render('login', { message: "Wrong username or password", google: authorizationUri });
-    }
+// Wylogowanie
+app.get('/logout', authorize(), (req, res) => {
+    res.cookie('user', '', { maxAge: -1 });
+    res.redirect('/');
 });
 
-// Google OAuth callback
+// Formularz logowania
+app.get('/login', (req, res) => {
+    res.render('login', {
+        google: authorizationUri,
+        message: null // Dodałem to, żeby nie było błędu "undefined" w EJS
+    });
+});
+
+// Callback od Google
 app.get('/callback', async (req, res) => {
     const code = req.query.code;
-    const options = { code, redirect_uri: 'http://localhost:3000/callback' };
+    const options = {
+        code,
+        redirect_uri: 'http://localhost:3000/callback'
+    };
 
     try {
         const result = await oauth2.getToken(options);
@@ -257,35 +273,91 @@ app.get('/callback', async (req, res) => {
         let user = users.find(u => u.username === data.email);
         if (!user) {
             await db.saveUser({
-                email: data.email,
+                username: data.email,
+                password: null, // Logowanie przez Google nie ma hasła
                 displayName: data.name,
-                passwordHash: null,
                 role: ADMIN_USERS.includes(data.email) ? 'admin' : 'user'
             });
-            user = { username: data.email };
         }
 
         res.cookie('user', user.username, { signed: true });
         res.redirect('/');
-    } catch (err) {
-        console.error('Błąd logowania Google:', err.message);
+    } catch (error) {
+        console.error('Błąd logowania Google:', error.message);
         res.redirect('/login');
     }
 });
 
-// Wylogowanie
-app.get('/logout', authorize(), (req, res) => {
-    res.cookie('user', '', { maxAge: -1 });
-    res.redirect('/');
+// Panel Admina (tylko dla roli 'admin')
+app.get('/admin', authorize('admin'), (req, res) => {
+    res.render('admin', { products: db.getProducts(), promoCodes: db.getPromoCodes(), categories: db.getCategories() });
 });
 
-// Panel admina
-app.get('/admin', authorize('admin'), async (req, res) => {
-    const products = await db.getProducts();
-    const promoCodes = await db.getPromoCodes();
-    const categories = await db.getCategories();
-    res.render('admin', { products, promoCodes, categories });
+// Dodawanie produktu
+app.post('/admin/add-product', authorize('admin'), (req, res) => {
+    const { producer, name, price, quantity, description, category } = req.body;
+    const products = db.getProducts();
+    
+    db.saveProduct({
+        id: Date.now(),
+        producer,
+        name,
+        price: parseFloat(price),
+        quantity: parseInt(quantity),
+        description,
+        category
+    });
+
+    res.redirect('/admin');
+});
+
+// Usuwanie produktu
+app.post('/admin/delete-product', authorize('admin'), (req, res) => {
+    const id = parseInt(req.body.id);
+    db.deleteProduct(id);
+    res.redirect('/admin');
+});
+
+// Dodawanie kodu promocyjnego
+app.post('/admin/add-promo', authorize('admin'), (req, res) => {
+    const { code, discount } = req.body;
+    db.savePromoCode({ code, discount: parseInt(discount) });
+    res.redirect('/admin');
+});
+
+// Usuwanie kodu promocyjnego
+app.post('/admin/delete-promo', authorize('admin'), (req, res) => {
+    const { code } = req.body;
+    db.deletePromoCode(code);
+    res.redirect('/admin');
+});
+
+// Obsługa logowania standardowego
+app.post('/login', async (req, res) => {
+    var username = req.body.txtUser;
+    var pwd = req.body.txtPwd;
+
+    const users = await db.getUsers();
+    const user = users.find(u => u.username === username && u.password === hashPassword(pwd));
+
+    if (user) {
+        res.cookie('user', username, { signed: true });
+        var returnUrl = req.query.returnUrl || '/';
+        res.redirect(returnUrl);
+    } else {
+        res.render('login', {
+            message: "Wrong username or password",
+            google: authorizationUri
+        });
+    }
 });
 
 // Uruchomienie serwera
-app.listen(port, () => console.log(`Serwer działa pod adresem http://localhost:${port}`));
+app.listen(port, () => {
+    console.log(`Serwer działa pod adresem: http://localhost:${port}`);
+});
+
+
+app.get('/account', authorize(), (req, res) => {
+    res.render('account'); // user jest przekazywany przez res.locals lub authorize
+});
