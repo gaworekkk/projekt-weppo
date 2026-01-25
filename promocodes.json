@@ -1,0 +1,22 @@
+[
+    {
+        "code": "START10",
+        "discount": 10
+    },
+    {
+        "code": "NOWYROK",
+        "discount": 20
+    },
+    {
+        "code": "POLOWA",
+        "discount": 50
+    },
+    {
+        "code": "VIP90",
+        "discount": 90
+    },
+    {
+        "code": "twojastara",
+        "discount": 100
+    }
+]
