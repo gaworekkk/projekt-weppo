@@ -1,0 +1,81 @@
+h1 {
+    margin-left: 20px;
+    margin-top: 40px;
+    color: rgb(40, 40, 40);
+}
+
+
+.products-grid {
+    display: grid;
+    /* Magiczna formuła: tworzy tyle kolumn, ile się zmieści.
+       Każda ma minimum 250px, a jeśli jest miejsce, rozciągają się (1fr) */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    /* Odstępy między kafelkami */
+    padding: 20px;
+    /* max-width: 1200px; */
+    margin: 0 auto;
+    /* Wyśrodkowanie całej siatki na stronie */
+}
+
+/* 2. POJEDYNCZY KAFELEK PRODUKTU */
+.product {
+    height: 100%;
+    background-color: #fff;
+    /* border: 1px solid #e0e0e0; */
+    border-radius: 8px;
+    /* Zaokrąglone rogi */
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    /* Delikatny cień */
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
+
+.product h3 {
+    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.product p {
+    font-size: 0.9rem;
+    margin: 0 0 15px 0;
+}
+
+.name {
+    color: #989898;
+    flex-grow: 1;
+}
+
+.price {
+    margin-top: 0;
+    font-weight: bold;
+}
+
+.product button {
+    /* margin-top: auto; */
+    margin-top: 0;
+    background-color: var(--primary);
+    transition: background-color 0.3s;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 600;
+}
+
+.product button:hover {
+    background-color: var(--primary-hover);
+}

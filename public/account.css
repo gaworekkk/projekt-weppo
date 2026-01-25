@@ -1,0 +1,118 @@
+/* --- Dashboard Użytkownika --- */
+
+/* Główny układ (Grid/Flex) */
+.account-layout {
+    display: flex;
+    gap: 40px;
+    /* Odstęp między menu a treścią */
+    align-items: flex-start;
+}
+
+/* --- Menu Boczne --- */
+.account-sidebar {
+    width: 250px;
+    /* Stała szerokość menu */
+    flex-shrink: 0;
+}
+
+.account-menu {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    /* Żeby rogi linków nie wystawały */
+}
+
+.menu-item {
+    padding: 15px 20px;
+    color: #333;
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    /* Pasek aktywności */
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.menu-item:hover {
+    background-color: #f8f9fa;
+    color: #000;
+}
+
+.menu-item.active {
+    background-color: var(--primary-lighter);
+    color: var(--primary);
+    border-left-color: var(--primary);
+}
+
+.menu-separator {
+    height: 1px;
+    background-color: #eee;
+    margin: 5px 0;
+}
+
+.logout-link {
+    color: #dc3545;
+}
+
+.logout-link:hover {
+    background-color: #fff5f5;
+    color: #a71d2a;
+}
+
+/* --- Prawa Kolumna (Treść) --- */
+.account-content {
+    flex: 1;
+    /* Zajmuje resztę miejsca */
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    /* Odstępy między kartami (Zamówienia a Ustawienia) */
+}
+
+.account-card {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    border: 1px solid #eee;
+}
+
+.card-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+/* --- Tabela w koncie --- */
+.account-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.account-table th {
+    text-align: left;
+    padding: 10px;
+    color: #666;
+    font-size: 0.9rem;
+    border-bottom: 2px solid #eee;
+}
+
+.account-table td {
+    padding: 15px 10px;
+    border-bottom: 1px solid #f9f9f9;
+}
+
+/* Responsywność: Na telefonach jedna kolumna */
+@media (max-width: 768px) {
+    .account-layout {
+        flex-direction: column;
+    }
+
+    .account-sidebar {
+        width: 100%;
+    }
+}

@@ -187,15 +187,28 @@ app.get('/cart', (req, res) => {
     const cartIds = req.signedCookies.cart || [];
     const allProducts = getProducts();
     const cartItems = [];
-    let total = 0;
 
+    // obsługa grupowania wielu wystąpień jednego przedmiotu
+    const counts = {};
     cartIds.forEach(id => {
+        counts[id] = (counts[id] || 0) + 1;
+    });
+
+    // 2. Tworzymy listę obiektów produktów z dodanym polem 'qty'
+    let total = 0;
+    for (const [idStr, qty] of Object.entries(counts)) {
+        const id = parseInt(idStr);
         const product = allProducts.find(p => p.id === id);
         if (product) {
-            cartItems.push(product);
-            total += product.price;
+            // Tworzymy kopię produktu i dodajemy ilość w koszyku oraz sumę za linię
+            cartItems.push({
+                ...product,
+                qty: qty,
+                rowTotal: product.price * qty
+            });
+            total += product.price * qty;
         }
-    });
+    }
 
     // Obsługa kodów promocyjnych
     let discount = 0;
@@ -211,8 +224,68 @@ app.get('/cart', (req, res) => {
             finalTotal = total - discount;
         }
     }
+    // obsługa wpisania błędnego kodu promocyjnego
+    const promoError = req.signedCookies.promoError || null;
+    if (promoError) res.clearCookie('promoError')
 
-    res.render('cart', { cartItems, total, appliedPromo, discount, finalTotal });
+    const isEmpty = cartItems.length === 0;
+
+    res.render('cart', {
+        cartItems,
+        total,
+        appliedPromo,
+        discount,
+        finalTotal,
+        promoError,
+        isEmpty
+    });
+});
+// --- NOWE ENDPOINTY: Obsługa ilości i usuwania ---
+
+// Zwiększ ilość (+1)
+app.post('/cart/increase/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const cart = req.signedCookies.cart || [];
+
+    // Sprawdzamy dostępność w magazynie (opcjonalne, ale zalecane)
+    const product = getProducts().find(p => p.id === id);
+
+    // Liczymy ile już mamy tego w koszyku
+    const currentQty = cart.filter(itemId => itemId === id).length;
+
+    if (product && currentQty < product.quantity) {
+        cart.push(id);
+        res.cookie('cart', cart, { signed: true, httpOnly: true });
+    }
+
+    res.redirect('/cart');
+});
+
+// Zmniejsz ilość (-1)
+app.post('/cart/decrease/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    let cart = req.signedCookies.cart || [];
+
+    // Znajdź indeks pierwszego wystąpienia tego produktu
+    const index = cart.indexOf(id);
+    if (index > -1) {
+        cart.splice(index, 1); // Usuń jeden element
+    }
+
+    res.cookie('cart', cart, { signed: true, httpOnly: true });
+    res.redirect('/cart');
+});
+
+// Usuń całkowicie produkt z koszyka (Kosz)
+app.post('/cart/remove/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    let cart = req.signedCookies.cart || [];
+
+    // Filtrujemy koszyk, zostawiając tylko ID inne niż usuwane
+    cart = cart.filter(itemId => itemId !== id);
+
+    res.cookie('cart', cart, { signed: true, httpOnly: true });
+    res.redirect('/cart');
 });
 
 // Składanie zamówienia (czyszczenie koszyka)
@@ -234,7 +307,7 @@ app.post('/cart/checkout', (req, res) => {
     for (const [idStr, count] of Object.entries(cartCounts)) {
         const id = parseInt(idStr);
         const product = products.find(p => p.id === id);
-        
+
         if (!product || product.quantity < count) {
             validStock = false;
             break;
@@ -244,7 +317,7 @@ app.post('/cart/checkout', (req, res) => {
     }
 
     if (!validStock) {
-        return res.redirect('/cart'); 
+        return res.redirect('/cart');
     }
 
     // Zapis zmian w produktach (zmniejszenie stanów)
@@ -263,7 +336,7 @@ app.post('/cart/checkout', (req, res) => {
 
     res.clearCookie('cart');
     res.clearCookie('promoCode');
-    res.render('cart', { cartItems: [], total: 0, message: 'Dziękujemy za złożenie zamówienia!' });
+    res.render('cart', { cartItems: [], total: 0, message: 'Thank you for placing your order!' });
 });
 
 // Aplikowanie kodu promocyjnego
@@ -272,6 +345,9 @@ app.post('/cart/apply-promo', (req, res) => {
     const codes = getPromoCodes();
     if (codes.find(c => c.code === code)) {
         res.cookie('promoCode', code, { signed: true, httpOnly: true });
+    } else {
+        // błędny kod
+        res.cookie('promoError', 'Inactive code', { signed: true, httpOnly: true });
     }
     res.redirect('/cart');
 });
@@ -370,7 +446,7 @@ app.get('/admin', authorize('admin'), (req, res) => {
 app.post('/admin/add-product', authorize('admin'), (req, res) => {
     const { producer, name, price, quantity, description, category } = req.body;
     const products = getProducts();
-    
+
     products.push({
         id: Date.now(),
         producer,
@@ -439,5 +515,11 @@ app.listen(port, () => {
 
 
 app.get('/account', authorize(), (req, res) => {
-    res.render('account'); // user jest przekazywany przez res.locals lub authorize
+    const allOrders = getOrders();
+    const userOrders = allOrders
+        .filter(order => order.user === req.user.username)
+        .sort((a, b) => b.id - a.id);
+    res.render('account', {
+        orders: userOrders
+    });
 });

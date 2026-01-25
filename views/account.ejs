@@ -1,24 +1,119 @@
 <%- include('partials/header.ejs') %>
 
-    <h1>Twoje Konto</h1>
-
-    <div style="border: 1px solid #ccc; padding: 20px;">
-        <h2>Witaj, <%= user.displayName || user.username %>!</h2>
-        
-        <p><strong>Twój login/email:</strong> <%= user.username %></p>
-        <p><strong>Twoja rola:</strong> <%= user.role %></p>
-
-        <h3>Opcje:</h3>
-        <ul>
-            <li><a href="#">Historia zamówień (wkrótce)</a></li>
-            <li><a href="#">Ustawienia konta (wkrótce)</a></li>
-        </ul>
-
-        <hr>
-        
-        <a href="/logout">
-            <button style="padding: 10px; background-color: #ddd;">Wyloguj się</button>
-        </a>
+ <div class="container">
+    
+    <div style="margin-bottom: 30px;">
+        <h1 style="margin-bottom: 5px;">Welcome, <%= user.displayName || 'user' %>!</h1>
     </div>
+
+    <div class="account-layout">
+        
+        <aside class="account-sidebar">
+            <nav class="account-menu">
+                <a href="#orders" class="menu-item active">My Orders</a>
+                <a href="#settings" class="menu-item">Account Settings</a>
+                <div class="menu-separator"></div>
+                <a href="/logout" class="menu-item logout-link">Log Out</a>
+            </nav>
+        </aside>
+
+        <main class="account-content">
+            
+            <section id="orders" class="account-card account-tab active">
+                <h2 class="card-title">Order History</h2>
+                
+                <% if (!orders || orders.length === 0) { %>
+                    <p style="color: #666;">You don't have any orders yet.</p>
+                    <a href="/shop" style="color: var(--primary); text-decoration: none;">Start shopping &rarr;</a>
+                <% } else { %>
+                    <table class="account-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th class="text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% orders.forEach(order => { %>
+                                <tr>
+                                    <td>#<%= order.id %></td>
+                                    <td>
+                                        <%= new Date(order.date).toLocaleDateString('pl-PL') %>
+                                        <small style="color:#999"><%= new Date(order.date).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'}) %></small>
+                                    </td>
+                                    <td>
+                                        <% const count = Object.keys(order.items).length; %>
+                                        <%= count %> <%= count === 1 ? 'item' : 'items' %>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong><%= order.total %> zł</strong>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } %>
+            </section>
+
+            <section id="settings" class="account-card account-tab">
+                <h2 class="card-title">Settings</h2>
+                
+                <form action="#" method="POST" style="max-width: 400px;">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; margin-bottom: 5px; font-weight: 500;">Display Name</label>
+                        <input type="text" name="displayName" value="<%= user.displayName %>" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; margin-bottom: 5px; font-weight: 500;">New Password</label>
+                        <input type="password" name="newPassword" placeholder="Leave blank to keep current" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+
+                    <button type="button" class="btn btn-primary">Save changes (Demo)</button>
+                </form>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<script>
+    function openTab(evt, tabName) {
+        // 1. Ukryj wszystkie sekcje z klasą .account-tab
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("account-tab");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].classList.remove("active");
+        }
+
+        // 2. Usuń klasę "active" ze wszystkich linków w menu
+        tablinks = document.getElementsByClassName("menu-item");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+
+        // 3. Pokaż wybraną sekcję i aktywuj kliknięty link
+        document.getElementById(tabName).classList.add("active");
+        
+        // Jeśli funkcja wywołana przez kliknięcie (evt istnieje)
+        if (evt) {
+            evt.currentTarget.classList.add("active");
+        } else {
+            // Jeśli wywołana ręcznie (np. przy ładowaniu strony), znajdź link po ID
+            document.getElementById('link-' + tabName).classList.add("active");
+        }
+    }
+
+    // --- AUTOMATYCZNE OTWIERANIE PO URL ---
+    // Sprawdzamy, czy w adresie jest np. #settings (po zapisaniu formularza)
+    document.addEventListener("DOMContentLoaded", function() {
+        var hash = window.location.hash.substring(1); // pobierz 'settings' lub 'orders'
+        if (hash && document.getElementById(hash)) {
+            openTab(null, hash);
+        }
+    });
+</script>
 
 <%- include('partials/footer.ejs') %>
