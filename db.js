@@ -17,7 +17,7 @@ async function getUsers() {
             username,
             display_name,
             password,
-            'user' AS role
+            role
         FROM users
     `);
     return rows;
