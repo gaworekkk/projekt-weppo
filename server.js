@@ -4,8 +4,8 @@ const cookieParser = require('cookie-parser');
 const { AuthorizationCode } = require('simple-oauth2');
 const axios = require('axios');
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
+
+const db = require('./db'); // teraz SQL
 
 const app = express();
 const port = 3000;
@@ -18,78 +18,8 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', './views');
 
-// --- Baza użytkowników  ---
-const USERS_FILE = path.join(__dirname, 'users.json'); // zmienić na prawdziwą bazę danych
-
-function getUsers() {
-    if (!fs.existsSync(USERS_FILE)) return [];
-    try {
-        return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
-    } catch (e) { return []; }
-}
-
-function saveUsers(users) {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-}
-
-// --- Baza zamówień (plikowa JSON) ---
-const ORDERS_FILE = path.join(__dirname, 'orders.json'); // zmienić na prawdziwą bazę danych
-
-function getOrders() {
-    if (!fs.existsSync(ORDERS_FILE)) return [];
-    try {
-        return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf8'));
-    } catch (e) { return []; }
-}
-
-function saveOrders(orders) {
-    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
-}
-
 // --- Lista Administratorów (Whitelist) ---
-const ADMIN_USERS = ['admin', 'wojciech@example.com', 'szef']; // zmienić na prawdziwą bazę danych
-
-// --- Baza produktów (plikowa JSON) ---
-const PRODUCTS_FILE = path.join(__dirname, 'products.json'); // zmienić na prawdziwą bazę danych
-
-function getProducts() {
-    if (!fs.existsSync(PRODUCTS_FILE)) return [];
-    try {
-        return JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'));
-    } catch (e) { return []; }
-}
-
-function saveProducts(products) {
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
-}
-
-// --- Baza kodów promocyjnych ---
-const PROMOCODES_FILE = path.join(__dirname, 'promocodes.json'); // zmienić na prawdziwą bazę danych
-
-function getPromoCodes() {
-    if (!fs.existsSync(PROMOCODES_FILE)) return [];
-    try {
-        return JSON.parse(fs.readFileSync(PROMOCODES_FILE, 'utf8'));
-    } catch (e) { return []; }
-}
-
-function savePromoCodes(codes) {
-    fs.writeFileSync(PROMOCODES_FILE, JSON.stringify(codes, null, 2));
-}
-
-// --- Baza kategorii ---
-const CATEGORIES_FILE = path.join(__dirname, 'categories.json'); // zmienić na prawdziwą bazę danych
-
-function getCategories() {
-    if (!fs.existsSync(CATEGORIES_FILE)) return [];
-    try {
-        return JSON.parse(fs.readFileSync(CATEGORIES_FILE, 'utf8'));
-    } catch (e) { return []; }
-}
-
-function saveCategories(categories) {
-    fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(categories, null, 2));
-}
+const ADMIN_USERS = ['admin@example.com'];
 
 // --- Konfiguracja OAuth2 (Google) ---
 const oauth2 = new AuthorizationCode({
@@ -122,9 +52,9 @@ function isUserInRole(user, role) {
 
 // Middleware autoryzacji
 function authorize(...roles) {
-    return function (req, res, next) {
+    return async function (req, res, next) {
         if (req.signedCookies.user) {
-            const users = getUsers();
+            const users = await db.getUsers();
             const username = req.signedCookies.user;
             const user = users.find(u => u.username === username);
 
@@ -141,13 +71,13 @@ function authorize(...roles) {
     };
 }
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
     // Jeśli mamy cookie, spróbujmy znaleźć użytkownika
     if (req.signedCookies.user) {
-        const users = getUsers();
+        const users = await db.getUsers();
         const username = req.signedCookies.user;
         const user = users.find(u => u.username === username);
-        res.locals.user = user; // res.locals sprawia, że zmienna 'user' jest dostępna we wszystkich widokach
+        res.locals.user = user || null; // res.locals sprawia, że zmienna 'user' jest dostępna we wszystkich widokach
     } else {
         res.locals.user = null;
     }
@@ -160,32 +90,29 @@ app.get('/', (req, res) => {
     res.render('home'); // renderuje views/home.ejs
 });
 
-app.get('/shop', (req, res) => {
-    res.render('shop', { products: getProducts() });
+app.get('/shop', async (req, res) => {
+    const products = await db.getProducts();
+    res.render('shop', { products });
 });
 
 app.get('/about', (req, res) => {
     res.render('about');
 });
 
-// Dodawanie do koszyka
+// Dodawanie do koszyka nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
 app.post('/cart/add/:id', (req, res) => {
     const productId = parseInt(req.params.id);
-    const products = getProducts();
-    const product = products.find(p => p.id === productId);
-
-    if (product) {
-        const cart = req.signedCookies.cart || [];
-        cart.push(productId);
-        res.cookie('cart', cart, { signed: true, httpOnly: true });
-    }
+    const cart = req.signedCookies.cart || [];
+    cart.push(productId);
+    res.cookie('cart', cart, { signed: true, httpOnly: true });
     res.redirect('/shop');
 });
 
 // Wyświetlanie koszyka
-app.get('/cart', (req, res) => {
+app.get('/cart', async (req, res) => {
     const cartIds = req.signedCookies.cart || [];
-    const allProducts = getProducts();
+    const allProducts = await db.getProducts();
+
     const cartItems = [];
     let total = 0;
 
@@ -203,7 +130,7 @@ app.get('/cart', (req, res) => {
     let appliedPromo = null;
 
     if (req.signedCookies.promoCode) {
-        const codes = getPromoCodes();
+        const codes = await db.getPromoCodes();
         const promo = codes.find(c => c.code === req.signedCookies.promoCode);
         if (promo) {
             appliedPromo = promo;
@@ -216,25 +143,25 @@ app.get('/cart', (req, res) => {
 });
 
 // Składanie zamówienia (czyszczenie koszyka)
-app.post('/cart/checkout', (req, res) => {
+app.post('/cart/checkout', async (req, res) => {
     const cartIds = req.signedCookies.cart || [];
     if (cartIds.length === 0) {
         return res.redirect('/cart');
     }
 
-    let products = getProducts();
+    const products = await db.getProducts();
     let total = 0;
     let validStock = true;
 
     // Weryfikacja stanów magazynowych
     // Zliczamy ilość wystąpień każdego produktu w koszyku
-    const cartCounts = {};
+        const cartCounts = {};
     cartIds.forEach(id => { cartCounts[id] = (cartCounts[id] || 0) + 1; });
 
     for (const [idStr, count] of Object.entries(cartCounts)) {
         const id = parseInt(idStr);
         const product = products.find(p => p.id === id);
-        
+
         if (!product || product.quantity < count) {
             validStock = false;
             break;
@@ -248,18 +175,28 @@ app.post('/cart/checkout', (req, res) => {
     }
 
     // Zapis zmian w produktach (zmniejszenie stanów)
-    saveProducts(products);
+    for (const p of products) {
+        await db.saveProduct({
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            quantity: p.quantity,
+            categoryId: p.category_id || 1
+        });
+    }
 
     // Zapis zamówienia
-    const orders = getOrders();
-    orders.push({
-        id: Date.now(),
-        user: req.signedCookies.user || 'guest',
-        date: new Date().toISOString(),
-        items: cartCounts, // Zapisujemy ID i ilość
-        total: total
+    const user = await db.getUsers().then(users => users.find(u => u.username === req.signedCookies.user));
+    const items = Object.entries(cartCounts).map(([id, quantity]) => {
+        const product = products.find(p => p.id === parseInt(id));
+        return { productId: parseInt(id), quantity, price: product.price };
     });
-    saveOrders(orders);
+
+    await db.saveOrder({
+        userId: user?.id || null,
+        items,
+        total
+    });
 
     res.clearCookie('cart');
     res.clearCookie('promoCode');
@@ -267,18 +204,12 @@ app.post('/cart/checkout', (req, res) => {
 });
 
 // Aplikowanie kodu promocyjnego
-app.post('/cart/apply-promo', (req, res) => {
+app.post('/cart/apply-promo', async (req, res) => {
     const { code } = req.body;
-    const codes = getPromoCodes();
+    const codes = await db.getPromoCodes();
     if (codes.find(c => c.code === code)) {
         res.cookie('promoCode', code, { signed: true, httpOnly: true });
     }
-    res.redirect('/cart');
-});
-
-// Usuwanie kodu promocyjnego
-app.post('/cart/remove-promo', (req, res) => {
-    res.clearCookie('promoCode');
     res.redirect('/cart');
 });
 
@@ -288,24 +219,22 @@ app.get('/register', (req, res) => {
 });
 
 // Obsługa rejestracji
-app.post('/register', (req, res) => {
-    const username = req.body.txtUser;
-    const password = req.body.txtPwd;
-    const displayName = req.body.txtName;
 
-    const users = getUsers();
+app.post('/register', async (req, res) => {
+    const { txtUser: username, txtPwd: password, txtName: displayName } = req.body;
+    
+    const users = await db.getUsers();
 
     if (users.find(u => u.username === username)) {
         return res.render('register', { message: 'Użytkownik już istnieje' });
     }
 
-    users.push({
+    await db.saveUser({
         username: username,
         password: hashPassword(password),
         displayName: displayName,
         role: ADMIN_USERS.includes(username) ? 'admin' : 'user'
     });
-    saveUsers(users);
 
     res.redirect('/login');
 });
@@ -340,17 +269,15 @@ app.get('/callback', async (req, res) => {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
 
-        const users = getUsers();
+        const users = await db.getUsers();
         let user = users.find(u => u.username === data.email);
         if (!user) {
-            user = {
+            await db.saveUser({
                 username: data.email,
                 password: null, // Logowanie przez Google nie ma hasła
                 displayName: data.name,
                 role: ADMIN_USERS.includes(data.email) ? 'admin' : 'user'
-            };
-            users.push(user);
-            saveUsers(users);
+            });
         }
 
         res.cookie('user', user.username, { signed: true });
@@ -363,15 +290,15 @@ app.get('/callback', async (req, res) => {
 
 // Panel Admina (tylko dla roli 'admin')
 app.get('/admin', authorize('admin'), (req, res) => {
-    res.render('admin', { products: getProducts(), promoCodes: getPromoCodes(), categories: getCategories() });
+    res.render('admin', { products: db.getProducts(), promoCodes: db.getPromoCodes(), categories: db.getCategories() });
 });
 
 // Dodawanie produktu
 app.post('/admin/add-product', authorize('admin'), (req, res) => {
     const { producer, name, price, quantity, description, category } = req.body;
-    const products = getProducts();
+    const products = db.getProducts();
     
-    products.push({
+    db.saveProduct({
         id: Date.now(),
         producer,
         name,
@@ -380,7 +307,6 @@ app.post('/admin/add-product', authorize('admin'), (req, res) => {
         description,
         category
     });
-    saveProducts(products);
 
     res.redirect('/admin');
 });
@@ -388,36 +314,30 @@ app.post('/admin/add-product', authorize('admin'), (req, res) => {
 // Usuwanie produktu
 app.post('/admin/delete-product', authorize('admin'), (req, res) => {
     const id = parseInt(req.body.id);
-    let products = getProducts();
-    products = products.filter(p => p.id !== id);
-    saveProducts(products);
+    db.deleteProduct(id);
     res.redirect('/admin');
 });
 
 // Dodawanie kodu promocyjnego
 app.post('/admin/add-promo', authorize('admin'), (req, res) => {
     const { code, discount } = req.body;
-    const codes = getPromoCodes();
-    codes.push({ code, discount: parseInt(discount) });
-    savePromoCodes(codes);
+    db.savePromoCode({ code, discount: parseInt(discount) });
     res.redirect('/admin');
 });
 
 // Usuwanie kodu promocyjnego
 app.post('/admin/delete-promo', authorize('admin'), (req, res) => {
     const { code } = req.body;
-    let codes = getPromoCodes();
-    codes = codes.filter(c => c.code !== code);
-    savePromoCodes(codes);
+    db.deletePromoCode(code);
     res.redirect('/admin');
 });
 
 // Obsługa logowania standardowego
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     var username = req.body.txtUser;
     var pwd = req.body.txtPwd;
 
-    const users = getUsers();
+    const users = await db.getUsers();
     const user = users.find(u => u.username === username && u.password === hashPassword(pwd));
 
     if (user) {
