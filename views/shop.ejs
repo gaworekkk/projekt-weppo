@@ -2,18 +2,6 @@
 
     <h1>Our Products</h1>
 
-    <% 
-        // Hardcoded tablica produktów (tylko na potrzeby widoku)
-        const products = [
-            { id: 1, producer: 'Apple', name: 'MacBook Pro 14inch M4 Max 512GB SSd', price: 13499 },
-            { id: 2, producer: 'B', name: 'Myszka Bezprzewodowa', price: 150 },
-            { id: 3, producer: 'C', name: 'Klawiatura Mechaniczna', price: 300 },
-            { id: 4, producer: 'D', name: 'Monitor 4K', price: 1200 },
-            { id: 5, producer: 'E', name: 'Słuchawki', price: 250 },
-            { id: 6, producer: 'F', name: 'Podkładka pod mysz', price: 50 }
-        ];
-    %>
-
     <div class="products-grid">
         <% products.forEach(function(product) { %>
             <div class="product">
@@ -21,8 +9,11 @@
                 <h3><%= product.producer %></h3>
                 <p class="name"><%= product.name %></p>
                 <p class="price"><%= product.price %> zł</p>
-                
-                <button type="button">Add to cart</button>
+                <form action="/cart/add/<%= product.id %>" method="POST">
+                        <button type="submit">
+                            Add to cart
+                        </button>
+                </form>
             </div>
         <% }); %>
     </div>

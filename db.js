@@ -25,10 +25,10 @@ async function getUsers() {
 
 async function saveUser({ username, displayName, password, role }) {
     await pool.query(`
-        INSERT INTO users (username, display_name, password)
-        VALUES ($1, $2, $3)
+        INSERT INTO users (username, display_name, password, role)
+        VALUES ($1, $2, $3, $4)
         ON CONFLICT (username) DO NOTHING
-    `, [username, displayName, password]);
+    `, [username, displayName, password, role]);
 }
 
 /* ================= PRODUCTS ================= */
@@ -42,6 +42,7 @@ async function getProducts() {
             p.price,
             p.quantity,
             p.category_id,
+            p.image_url,
             p.created_at
         FROM products p
         ORDER BY p.created_at DESC
@@ -50,11 +51,11 @@ async function getProducts() {
 }
 
 
-async function saveProduct({ name, description, price, quantity, categoryId }) {
+async function saveProduct({ name, description, price, quantity, categoryId, imageUrl }) {
     await pool.query(`
-        INSERT INTO products (name, description, price, quantity, category_id)
-        VALUES ($1, $2, $3, $4, $5)
-    `, [name, description, price, quantity, categoryId]);
+        INSERT INTO products (name, description, price, quantity, category_id, image_url)
+        VALUES ($1, $2, $3, $4, $5, $6)
+    `, [name, description, price, quantity, categoryId, imageUrl]);
 }
 
 

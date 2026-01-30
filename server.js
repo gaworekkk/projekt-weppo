@@ -19,7 +19,7 @@ app.set('view engine', 'ejs');
 app.set('views', './views');
 
 // --- Lista Administratorów (Whitelist) ---
-const ADMIN_USERS = ['admin@example.com'];
+const ADMIN_USERS = ['admin'];
 
 // --- Konfiguracja OAuth2 (Google) ---
 const oauth2 = new AuthorizationCode({
@@ -92,6 +92,11 @@ app.get('/', (req, res) => {
 
 app.get('/shop', async (req, res) => {
     const products = await db.getProducts();
+    products.forEach(p => {
+        if (p.image_url === null) {
+            p.image_url = 'http://localhost:3000/images/laptop.jpeg';
+        }
+    });
     res.render('shop', { products });
 });
 
