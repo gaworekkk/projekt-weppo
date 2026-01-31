@@ -38,15 +38,15 @@
 /* --- Style wewnątrz tabeli (bez zmian, tylko dopasowanie) --- */
 .cart-table {
     width: 100%;
+    padding: 40px;
+    text-align: center;
     border-collapse: collapse;
+    background-color: #fff;
+    border: 1px #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
-
-.cart-table th {
-    border-bottom: 2px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
 
 .cart-table td {
     padding: 20px 10px;

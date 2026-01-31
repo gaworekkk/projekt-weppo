@@ -92,6 +92,9 @@ app.get('/', (req, res) => {
 
 app.get('/shop', async (req, res) => {
     const products = await db.getProducts();
+    if (products.length > 0) {
+        console.log("PRZYKŁADOWY PRODUKT Z BAZY:", products[0]);
+    }
     products.forEach(p => {
         if (p.image_url === null) {
             p.image_url = 'http://localhost:3000/images/laptop.jpeg';
@@ -127,24 +130,24 @@ app.get('/cart', async (req, res) => {
     });
 
     // 2. Tworzymy listę obiektów produktów z dodanym polem 'qty'
-    let total = 0;
+    let totalGrosze = 0;
     for (const [idStr, qty] of Object.entries(counts)) {
         const id = parseInt(idStr);
         const product = allProducts.find(p => p.id === id);
         if (product) {
-            // Tworzymy kopię produktu i dodajemy ilość w koszyku oraz sumę za linię
+            const priceGrosze = Math.round(parseFloat(product.price) * 100);
+            const rowTotalGrosze = priceGrosze * qty;
             cartItems.push({
                 ...product,
                 qty: qty,
-                rowTotal: product.price * qty
+                rowTotal: rowTotalGrosze / 100
             });
-            total += product.price * qty;
+            totalGrosze += rowTotalGrosze;
         }
     }
 
     // Obsługa kodów promocyjnych
-    let discount = 0;
-    let finalTotal = total;
+    let discountGrosze = 0;
     let appliedPromo = null;
 
     if (req.signedCookies.promoCode) {
@@ -152,10 +155,11 @@ app.get('/cart', async (req, res) => {
         const promo = codes.find(c => c.code === req.signedCookies.promoCode);
         if (promo) {
             appliedPromo = promo;
-            discount = Math.round(total * (promo.discount / 100));
-            finalTotal = total - discount;
+            discountGrosze = Math.round(totalGrosze * (promo.discount / 100));
         }
     }
+    const finalTotalGrosze = totalGrosze - discountGrosze;
+
     // obsługa wpisania błędnego kodu promocyjnego
     const promoError = req.signedCookies.promoError || null;
     if (promoError) res.clearCookie('promoError')
@@ -164,10 +168,10 @@ app.get('/cart', async (req, res) => {
 
     res.render('cart', {
         cartItems,
-        total,
+        total: totalGrosze / 100,
         appliedPromo,
-        discount,
-        finalTotal,
+        discount: discountGrosze / 100,
+        finalTotal: finalTotalGrosze / 100,
         promoError,
         isEmpty
     });
@@ -175,14 +179,13 @@ app.get('/cart', async (req, res) => {
 // --- NOWE ENDPOINTY: Obsługa ilości i usuwania ---
 
 // Zwiększ ilość (+1)
-app.post('/cart/increase/:id', (req, res) => {
+app.post('/cart/increase/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const cart = req.signedCookies.cart || [];
 
-    // Sprawdzamy dostępność w magazynie (opcjonalne, ale zalecane)
-    const product = getProducts().find(p => p.id === id);
+    const products = await db.getProducts();
+    const product = products.find(p => p.id === id);
 
-    // Liczymy ile już mamy tego w koszyku
     const currentQty = cart.filter(itemId => itemId === id).length;
 
     if (product && currentQty < product.quantity) {
@@ -194,7 +197,7 @@ app.post('/cart/increase/:id', (req, res) => {
 });
 
 // Zmniejsz ilość (-1)
-app.post('/cart/decrease/:id', (req, res) => {
+app.post('/cart/decrease/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     let cart = req.signedCookies.cart || [];
 
@@ -370,45 +373,73 @@ app.get('/callback', async (req, res) => {
 });
 
 // Panel Admina (tylko dla roli 'admin')
-app.get('/admin', authorize('admin'), (req, res) => {
-    res.render('admin', { products: db.getProducts(), promoCodes: db.getPromoCodes(), categories: db.getCategories() });
+app.get('/admin', authorize('admin'), async (req, res) => {
+    try {
+        const products = await db.getProducts();
+        const promoCodes = await db.getPromoCodes();
+        const categories = await db.getCategories();
+        res.render('admin', { products, promoCodes, categories });
+    } catch (err) {
+        console.error("Admin Panel Error:", err);
+        res.status(500).send("Server Error");
+    }
 });
 
 // Dodawanie produktu
-app.post('/admin/add-product', authorize('admin'), (req, res) => {
-    const { producer, name, price, quantity, description, category } = req.body;
-    db.saveProduct({
-        id: Date.now(),
-        producer,
-        name,
-        price: parseFloat(price),
-        quantity: parseInt(quantity),
-        description,
-        category
-    });
+app.post('/admin/add-product', authorize('admin'), async (req, res) => {
+    try {
+        const { producer, name, price, quantity, description, category } = req.body;
 
-    res.redirect('/admin');
+        await db.saveProduct({
+            // id: Date.now(),
+            producer,
+            name,
+            price: parseFloat(price),
+            quantity: parseInt(quantity),
+            description,
+            category
+        });
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error adding product:", err);
+        res.redirect('/admin');
+    }
 });
 
 // Usuwanie produktu
-app.post('/admin/delete-product', authorize('admin'), (req, res) => {
-    const id = parseInt(req.body.id);
-    db.deleteProduct(id);
-    res.redirect('/admin');
+app.post('/admin/delete-product', authorize('admin'), async (req, res) => {
+    try {
+        const id = parseInt(req.body.id);
+        await db.deleteProduct(id);
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error deleting product:", err);
+        res.redirect('/admin');
+    }
 });
 
 // Dodawanie kodu promocyjnego
-app.post('/admin/add-promo', authorize('admin'), (req, res) => {
-    const { code, discount } = req.body;
-    db.savePromoCode({ code, discount: parseInt(discount) });
-    res.redirect('/admin');
+app.post('/admin/add-promo', authorize('admin'), async (req, res) => {
+    try {
+        const { code, discount } = req.body;
+        await db.savePromoCode({ code, discount: parseInt(discount) });
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error adding promo:", err);
+        res.redirect('/admin');
+    }
 });
 
 // Usuwanie kodu promocyjnego
-app.post('/admin/delete-promo', authorize('admin'), (req, res) => {
-    const { code } = req.body;
-    db.deletePromoCode(code);
-    res.redirect('/admin');
+app.post('/admin/delete-promo', authorize('admin'), async (req, res) => {
+    try {
+        const { code } = req.body;
+        await db.deletePromoCode(code);
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error deleting promo:", err);
+        res.redirect('/admin');
+    }
 });
 
 // Obsługa logowania standardowego
@@ -438,11 +469,12 @@ app.listen(port, () => {
 
 
 app.get('/account', authorize(), (req, res) => {
-    const allOrders = getOrders();
-    const userOrders = allOrders
-        .filter(order => order.user === req.user.username)
-        .sort((a, b) => b.id - a.id);
-    res.render('account', {
-        orders: userOrders
-    });
+    // const allOrders = getOrders();
+    // const userOrders = allOrders
+    //     .filter(order => order.user === req.user.username)
+    //     .sort((a, b) => b.id - a.id);
+    // res.render('account', {
+    //     orders: userOrders
+    // });
+    res.render('account');
 });

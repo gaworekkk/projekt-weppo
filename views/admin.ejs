@@ -1,0 +1,117 @@
+<%- include('partials/header.ejs') %>
+
+<div class="container admin-panel">
+    <h1>Admin Panel</h1>
+
+    <section class="admin-section">
+        <h2>Products</h2>
+        
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Producer</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Akcja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (products && products.length > 0) { %>
+                        <% products.forEach(function(product) { %>
+                            <tr>
+                                <td><%= product.id %></td>
+                                <td><%= product.producer %></td>
+                                <td><%= product.name %></td>
+                                <td><%= parseFloat(product.price).toFixed(2) %> zł</td>
+                                <td><%= product.quantity %> szt.</td>
+                                <td>
+                                    <form action="/admin/delete-product" method="POST" onsubmit="return confirm('Are you sure you want to delete?');">
+                                        <input type="hidden" name="id" value="<%= product.id %>">
+                                        <button type="submit" class="btn-delete">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr><td colspan="6">No products in database</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="add-form">
+            <h3>Add new product</h3>
+            <form action="/admin/add-product" method="POST">
+                <div class="form-row">
+                    <input type="text" name="producer" placeholder="Producer" required>
+                    <input type="text" name="name" placeholder="Name" required>
+                </div>
+                <div class="form-row">
+                    <input type="number" step="0.01" name="price" placeholder="Price (zł)" required>
+                    <input type="number" name="quantity" placeholder="Quantity" required>
+                </div>
+                
+                <div class="form-row">
+                    <select name="category" required>
+                        <option value="" disabled selected>Select category</option>
+                        <% if (categories && categories.length > 0) { %>
+                            <% categories.forEach(cat => { %>
+                                <option value="<%= cat.id %>"><%= cat.name %></option>
+                            <% }) %>
+                        <% } else { %>
+                            <option value="1">Default</option>
+                        <% } %>
+                    </select>
+                </div>
+
+                <textarea name="description" placeholder="Product description..." rows="3"></textarea>
+                <div class="form-row">
+                    <input type="text" name="image_url" placeholder="Image URL" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add product</button>
+            </form>
+        </div>
+    </section>
+
+    <hr>
+
+    <section class="admin-section">
+        <h2>Promo codes</h2>
+        
+        <div class="promo-container">
+            <ul class="promo-list">
+                <% if (promoCodes && promoCodes.length > 0) { %>
+                    <% promoCodes.forEach(code => { %>
+                        <li>
+                            <span class="code-name"><%= code.code %></span> 
+                            <span class="code-value">-<%= code.discount %>%</span>
+                            <form action="/admin/delete-promo" method="POST" style="display:inline;">
+                                <input type="hidden" name="code" value="<%= code.code %>">
+                                <button type="submit" class="btn-trash">&times;</button>
+                            </form>
+                        </li>
+                    <% }) %>
+                <% } else { %>
+                    <li>No active codes</li>
+                <% } %>
+            </ul>
+
+            <div class="add-form">
+                <h3>New code</h3>
+                <form action="/admin/add-promo" method="POST">
+                    <div class="form-row">
+                        <input type="text" name="code" placeholder="Code..." required>
+                        <input type="number" name="discount" placeholder="Discount %" min="1" max="100" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+
+<%- include('partials/footer.ejs') %>

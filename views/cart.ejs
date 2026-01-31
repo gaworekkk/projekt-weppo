@@ -25,17 +25,12 @@
                 </div>
             <% } else { %>
                 <table class="cart-table">
-                    <thead>
-                        <!-- <tr>
-                            <th style="width: 40%;">Produkt</th>
-                            <th style="width: 25%; text-align: center;">Ilość</th>
-                            <th style="width: 20%; text-align: right;">Cena</th>
-                            <th style="width: 15%; text-align: center;">Usuń</th>
-                        </tr> -->
-                    </thead>
                     <tbody>
                         <% cartItems.forEach(function(item) { %>
                             <tr class="cart-row">
+                                <td>
+                                    <img src=" <%= item.image_url ? item.image_url : 'http://localhost:3000/images/laptop.jpeg'%>">
+                                </td>
                                 <td>
                                     <div class="product-info">
                                         <div>
