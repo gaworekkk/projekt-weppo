@@ -19,7 +19,6 @@
             <% if (isEmpty) { %>
                 <div class="empty-cart-message">
                     <h2>Your cart is empty</h2>
-                    <!-- <p>Wygląda na to, że nie dodałeś jeszcze żadnych produktów.</p> -->
                     <br>
                     <a href="/shop" class="btn btn-primary">Go back to shop</a>
                 </div>
@@ -29,7 +28,7 @@
                         <% cartItems.forEach(function(item) { %>
                             <tr class="cart-row">
                                 <td>
-                                    <img src=" <%= item.image_url ? item.image_url : 'http://localhost:3000/images/laptop.jpeg'%>">
+                                    <img class="cart-thumbnail" src=" <%= item.image_url ? item.image_url : 'http://localhost:3000/images/laptop.jpeg'%>">
                                 </td>
                                 <td>
                                     <div class="product-info">

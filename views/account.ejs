@@ -1,23 +1,49 @@
 <%- include('partials/header.ejs') %>
 
- <div class="container">
-    
-    <div style="margin-bottom: 30px;">
-        <h1 style="margin-bottom: 5px;">Welcome, <%= user.displayName || 'user' %>!</h1>
+<div class="container account-page">
+    <div class="account-header">
+        <h1>My Account</h1>
+        <div class="user-info">
+            <p>Welcome back, <strong><%= typeof user !== 'undefined' ? (user.displayName || user.username) : 'User' %></strong>!</p>
+        </div>
     </div>
 
-    <div class="account-layout">
-        
-        <aside class="account-sidebar">
-            <nav class="account-menu">
-                <a href="#orders" class="menu-item active">My Orders</a>
-                <a href="#settings" class="menu-item">Account Settings</a>
-                <div class="menu-separator"></div>
-                <a href="/logout" class="menu-item logout-link">Log Out</a>
-            </nav>
-        </aside>
+    <div class="account-content">
+        <section class="orders-section">
+            <h2>Order History</h2>
+            
+            <div class="table-responsive">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders && orders.length > 0) { %>
+                            <% orders.forEach(order => { %>
+                                <tr>
+                                    <td>#<%= order.id %></td>
+                                    <td><%= order.date %></td>
+                                    <td><%= order.itemsCount %></td>
+                                    <td>$<%= order.total.toFixed(2) %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="4" class="text-center">You have no orders yet.</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <a href="/logout" class="btn btn-primary btn-block">Log Out</a>
     </div>
 </div>
-        
 
 <%- include('partials/footer.ejs') %>

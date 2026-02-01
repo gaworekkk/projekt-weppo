@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="/login.css">
     <link rel="stylesheet" href="/account.css">
     <link rel="stylesheet" href="/admin.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
@@ -31,7 +33,7 @@
 
             <% if (typeof user !== 'undefined' && user) { %>
                 <a href="/account" title="Account">
-                    acc
+                    <i class="fa-solid fa-user"></i>
                 </a>
             <% } else { %>
                 <a href="/login">Sign In</a>

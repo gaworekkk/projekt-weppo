@@ -1,41 +1,30 @@
 .container {
-    /* max-width: 1100px; */
     margin: 0 auto;
     padding: 50px;
-    /* margin-top: 30px; */
 }
 
-/* --- Układ Flexbox (Dwie kolumny) --- */
 .cart-layout {
     display: flex;
     gap: 30px;
-    /* Odstęp między tabelą a kartą */
     align-items: flex-start;
-    /* Żeby karta nie rozciągała się na wysokość tabeli */
 }
 
-/* Lewa kolumna zajmuje całe dostępne miejsce */
 .cart-left {
     flex: 1;
 }
 
-/* Prawa kolumna (Karta) ma stałą szerokość */
+
 .cart-right-card {
     width: 400px;
-    /* Stała szerokość karty */
     background-color: white;
-    /* Białe tło */
     padding: 25px;
     border-radius: 8px;
-    /* Zaokrąglone rogi */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    /* Delikatny cień */
     position: sticky;
-    /* Opcjonalne: przykleja kartę przy przewijaniu */
     top: 20px;
 }
 
-/* --- Style wewnątrz tabeli (bez zmian, tylko dopasowanie) --- */
+/* --- Style wewnątrz tabeli  --- */
 .cart-table {
     width: 100%;
     padding: 40px;
@@ -50,9 +39,7 @@
 
 .cart-table td {
     padding: 20px 10px;
-    /* 20px góra/dół daje dużo powietrza */
     vertical-align: middle;
-    /* Wyśrodkowanie w pionie */
     border-bottom: 1px solid #eee;
 }
 
@@ -91,7 +78,6 @@
 .btn-trash {
     background: none;
     border: 1px solid transparent;
-    /* Żeby nie skakał przy hover */
     color: #999;
     font-size: 1.5rem;
     cursor: pointer;
@@ -103,12 +89,9 @@
 
 .btn-trash:hover {
     color: #dc3545;
-    /* Czerwony */
     background-color: #fff5f5;
-    /* border-color: #ffcccc; */
 }
 
-/* Mały tekst (np. cena za sztukę) */
 .text-muted {
     color: #888;
     font-weight: normal;
@@ -288,12 +271,9 @@
 
 .btn-remove:hover {
     color: #dc3545;
-    /* Czerwony po najechaniu */
 }
 
 
-
-/* --- Guzik na całą szerokość --- */
 .btn-block {
     display: block;
     width: 100%;
@@ -319,20 +299,16 @@
 
 .card-disabled {
     opacity: 0.7;
-    /* Lekkie wyszarzenie całości */
     pointer-events: none;
-    /* Blokuje kliknięcia w linki/guziki wewnątrz (opcjonalne) */
 }
 
 
-/* Kolor tekstów w nieaktywnej karcie */
 .card-disabled h3,
 .card-disabled span,
 .card-disabled strong {
     color: #999;
 }
 
-/* Specyficzne klasy dla elementów formularza, gdy koszyk pusty */
 .label-disabled {
     color: #ccc;
 }
@@ -344,4 +320,11 @@
 
 .input-placeholder-disabled::placeholder {
     color: #ccc;
+}
+
+.cart-thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
 }

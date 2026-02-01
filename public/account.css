@@ -1,118 +1,101 @@
-/* --- Dashboard Użytkownika --- */
+.account-page {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
 
-/* Główny układ (Grid/Flex) */
-.account-layout {
+.account-header {
+    border-bottom: 2px solid var(--dark-background);
+    margin-bottom: 30px;
+    padding-bottom: 10px;
     display: flex;
-    gap: 40px;
-    /* Odstęp między menu a treścią */
+    flex-direction: column;
     align-items: flex-start;
 }
 
-/* --- Menu Boczne --- */
-.account-sidebar {
-    width: 250px;
-    /* Stała szerokość menu */
-    flex-shrink: 0;
-}
-
-.account-menu {
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    overflow: hidden;
-    /* Żeby rogi linków nie wystawały */
-}
-
-.menu-item {
-    padding: 15px 20px;
+.account-header h1 {
+    margin: 0;
     color: #333;
-    text-decoration: none;
-    border-left: 3px solid transparent;
-    /* Pasek aktywności */
-    transition: all 0.2s;
-    font-weight: 500;
 }
 
-.menu-item:hover {
-    background-color: #f8f9fa;
-    color: #000;
+.user-info {
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
-.menu-item.active {
-    background-color: var(--primary-lighter);
-    color: var(--primary);
-    border-left-color: var(--primary);
-}
-
-.menu-separator {
-    height: 1px;
-    background-color: #eee;
-    margin: 5px 0;
-}
-
-.logout-link {
-    color: #dc3545;
-}
-
-.logout-link:hover {
-    background-color: #fff5f5;
-    color: #a71d2a;
-}
-
-/* --- Prawa Kolumna (Treść) --- */
 .account-content {
-    flex: 1;
-    /* Zajmuje resztę miejsca */
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    /* Odstępy między kartami (Zamówienia a Ustawienia) */
+    gap: 40px;
 }
 
-.account-card {
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-    border: 1px solid #eee;
-}
-
-.card-title {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 15px;
-}
-
-/* --- Tabela w koncie --- */
-.account-table {
+/* Tabela zamówień */
+.orders-table {
     width: 100%;
     border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-.account-table th {
+.orders-table th,
+.orders-table td {
+    padding: 15px;
     text-align: left;
-    padding: 10px;
-    color: #666;
-    font-size: 0.9rem;
-    border-bottom: 2px solid #eee;
+    border-bottom: 1px solid #f0f0f0;
 }
 
-.account-table td {
-    padding: 15px 10px;
-    border-bottom: 1px solid #f9f9f9;
+.orders-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #555;
 }
 
-/* Responsywność: Na telefonach jedna kolumna */
-@media (max-width: 768px) {
-    .account-layout {
-        flex-direction: column;
-    }
+.orders-table tr:last-child td {
+    border-bottom: none;
+}
 
-    .account-sidebar {
-        width: 100%;
-    }
+
+
+/* Przyciski */
+.btn-details {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.btn-details:hover {
+    background-color: #5a6268;
+}
+
+.account-actions {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.btn-logout {
+    display: inline-block;
+    background-color: var(--primary);
+    color: white;
+    padding: 10px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn-logout:hover {
+    background-color: var(--primary-hover);
+}
+
+.text-center {
+    text-align: center !important;
+    font-size: 0.9em;
 }

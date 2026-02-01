@@ -7,27 +7,19 @@ h1 {
 
 .products-grid {
     display: grid;
-    /* Magiczna formuła: tworzy tyle kolumn, ile się zmieści.
-       Każda ma minimum 250px, a jeśli jest miejsce, rozciągają się (1fr) */
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
-    /* Odstępy między kafelkami */
     padding: 20px;
-    /* max-width: 1200px; */
     margin: 0 auto;
-    /* Wyśrodkowanie całej siatki na stronie */
 }
 
 /* 2. POJEDYNCZY KAFELEK PRODUKTU */
 .product {
     height: 100%;
     background-color: #fff;
-    /* border: 1px solid #e0e0e0; */
     border-radius: 8px;
-    /* Zaokrąglone rogi */
     padding: 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    /* Delikatny cień */
     transition: transform 0.2s, box-shadow 0.2s;
 
     display: flex;
@@ -63,7 +55,6 @@ h1 {
 }
 
 .product button {
-    /* margin-top: auto; */
     margin-top: 0;
     background-color: var(--primary);
     transition: background-color 0.3s;

@@ -469,12 +469,13 @@ app.listen(port, () => {
 
 
 app.get('/account', authorize(), (req, res) => {
-    // const allOrders = getOrders();
-    // const userOrders = allOrders
-    //     .filter(order => order.user === req.user.username)
-    //     .sort((a, b) => b.id - a.id);
-    // res.render('account', {
-    //     orders: userOrders
-    // });
-    res.render('account');
+    const mockOrders = [
+        // { id: 1001, date: '2026-01-15', total: 299.99, status: 'Completed', itemsCount: 2 },
+        // { id: 1002, date: '2026-01-28', total: 4500.00, status: 'Processing', itemsCount: 1 },
+        // { id: 1003, date: '2026-02-01', total: 49.90, status: 'Cancelled', itemsCount: 3 }
+    ];
+    res.render('account', {
+        orders: mockOrders,
+        user: req.user
+    });
 });
