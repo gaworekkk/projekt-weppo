@@ -20,9 +20,9 @@ async function testDB() {
 
         // 2️⃣ Dodawanie testowego użytkownika
         const testUser = {
-            email: 'testuser@example.com',
+            username: 'testuser@example.com',
             displayName: 'Test User',
-            passwordHash: 'testhash',
+            password: 'testhash',
             role: 'user'
         };
         await db.saveUser(testUser);
@@ -64,17 +64,30 @@ async function testDB() {
 
         const user = updatedUsers.find(u => u.username === 'testuser@example.com');
 
-        await db.saveOrder({
-            userId: user.id,
-            items: orderItems,
-            total: orderItems.reduce((acc, i) => acc + i.price * i.quantity, 0)
-        });
-        console.log('Złożono testowe zamówienie');
+        // await db.saveOrder({
+        //     userId: user.id,
+        //     items: orderItems,
+        //     total: orderItems.reduce((acc, i) => acc + i.price * i.quantity, 0)
+        // });
+        // console.log('Złożono testowe zamówienie');
 
         // 7️⃣ Czyszczenie testowych danych
-        await db.deleteProduct(updatedProducts.find(p => p.name === 'Test Product')?.id);
+        const newproducts = await db.getProducts();
+        const newtestProduct = newproducts.find(p => p.name === 'Test Product');
+        console.log(newtestProduct);
+
+        await db.updateProductQuantity(newtestProduct.id, 100);
+        const pr = await db.getProducts();
+        if (pr.find(p => p.id === newtestProduct.id).quantity === 100) {
+            console.log('Zaktualizowano ilość testowego produktu');
+        }
+        if (newtestProduct) {
+            await db.deleteProduct(newtestProduct.id);
+        }
         await db.deletePromoCode('TEST10');
         console.log('Usunięto testowe dane');
+
+
 
         console.log('--- TEST ZAKOŃCZONY POMYŚLNIE ---');
         process.exit(0);

@@ -36,6 +36,7 @@ async function saveUser({ username, displayName, password, role }) {
 async function getProducts() {
     const { rows } = await pool.query(`
         SELECT 
+            p.id,
             p.producer,
             p.name,
             p.description,
@@ -51,17 +52,26 @@ async function getProducts() {
 }
 
 
-async function saveProduct({ name, description, price, quantity, categoryId, imageUrl }) {
+async function saveProduct({producer, name, description, price, quantity, category, image_url }) {
     await pool.query(`
-        INSERT INTO products (name, description, price, quantity, category_id, image_url)
-        VALUES ($1, $2, $3, $4, $5, $6)
-    `, [name, description, price, quantity, categoryId, imageUrl]);
+        INSERT INTO products (producer, name, description, price, quantity, category_id, image_url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [producer, name, description, price, quantity, category, image_url]);
 }
 
 
 async function deleteProduct(id) {
     await pool.query(`DELETE FROM products WHERE id = $1`, [id]);
 }
+
+async function updateProductQuantity(id, quantity) {
+    await pool.query(`
+        UPDATE products
+        SET quantity = $1
+        WHERE id = $2
+    `, [quantity, id]);
+}
+
 
 /* ================= CATEGORIES ================= */
 
@@ -135,6 +145,7 @@ module.exports = {
     getProducts,
     saveProduct,
     deleteProduct,
+    updateProductQuantity,
     getCategories,
     getPromoCodes,
     savePromoCode,

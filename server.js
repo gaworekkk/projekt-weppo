@@ -92,9 +92,9 @@ app.get('/', (req, res) => {
 
 app.get('/shop', async (req, res) => {
     const products = await db.getProducts();
-    if (products.length > 0) {
-        console.log("PRZYKŁADOWY PRODUKT Z BAZY:", products[0]);
-    }
+    // if (products.length > 0) {
+    //     console.log("PRZYKŁADOWY PRODUKT Z BAZY:", products[0]);
+    // }
     products.forEach(p => {
         if (p.image_url === null) {
             p.image_url = 'http://localhost:3000/images/laptop.jpeg';
@@ -229,6 +229,7 @@ app.post('/cart/checkout', async (req, res) => {
     if (cartIds.length === 0) {
         return res.redirect('/cart');
     }
+    console.log("Przetwarzanie zamówienia dla koszyka:", cartIds);
 
     const products = await db.getProducts();
     let total = 0;
@@ -376,6 +377,7 @@ app.get('/callback', async (req, res) => {
 app.get('/admin', authorize('admin'), async (req, res) => {
     try {
         const products = await db.getProducts();
+        //console.log("Admin Panel - Products:", products);
         const promoCodes = await db.getPromoCodes();
         const categories = await db.getCategories();
         res.render('admin', { products, promoCodes, categories });
@@ -388,7 +390,8 @@ app.get('/admin', authorize('admin'), async (req, res) => {
 // Dodawanie produktu
 app.post('/admin/add-product', authorize('admin'), async (req, res) => {
     try {
-        const { producer, name, price, quantity, description, category } = req.body;
+        const { producer, name, price, quantity, description, image_url, category } = req.body;
+        //console.log("Adding product:", req.body);
 
         await db.saveProduct({
             // id: Date.now(),
@@ -397,7 +400,8 @@ app.post('/admin/add-product', authorize('admin'), async (req, res) => {
             price: parseFloat(price),
             quantity: parseInt(quantity),
             description,
-            category
+            image_url, 
+            category: parseInt(category)
         });
         res.redirect('/admin');
     } catch (err) {
@@ -408,6 +412,9 @@ app.post('/admin/add-product', authorize('admin'), async (req, res) => {
 
 // Usuwanie produktu
 app.post('/admin/delete-product', authorize('admin'), async (req, res) => {
+    //console.log("Received delete request");
+    //console.log("Request body:", req.body);
+    //console.log("Deleting product with ID:", req.body.id);
     try {
         const id = parseInt(req.body.id);
         await db.deleteProduct(id);
