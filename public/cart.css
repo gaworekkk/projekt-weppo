@@ -1,0 +1,330 @@
+.container {
+    margin: 0 auto;
+    padding: 50px;
+}
+
+.cart-layout {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.cart-left {
+    flex: 1;
+}
+
+
+.cart-right-card {
+    width: 400px;
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 20px;
+}
+
+/* --- Style wewnątrz tabeli  --- */
+.cart-table {
+    width: 100%;
+    padding: 40px;
+    text-align: center;
+    border-collapse: collapse;
+    background-color: #fff;
+    border: 1px #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+
+.cart-table td {
+    padding: 20px 10px;
+    vertical-align: middle;
+    border-bottom: 1px solid #eee;
+}
+
+/* Kontrolki Ilości */
+.quantity-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.btn-qty {
+    background: none;
+    border: none;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #555;
+    transition: background 0.2s;
+}
+
+.btn-qty:hover {
+    background-color: #f0f0f0;
+}
+
+.qty-display {
+    padding: 0 10px;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Guzik Usuwania (Kosz) */
+.btn-trash {
+    background: none;
+    border: 1px solid transparent;
+    color: #999;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-trash:hover {
+    color: #dc3545;
+    background-color: #fff5f5;
+}
+
+.text-muted {
+    color: #888;
+    font-weight: normal;
+    font-size: 0.85em;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* --- Style wewnątrz karty podsumowania --- */
+.cart-right-card h3 {
+    margin-top: 0;
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.total-price {
+    color: var(--green);
+}
+
+/* --- Stara, przekreślona cena --- */
+.old-price {
+    text-decoration: line-through;
+    /* Przekreślenie */
+    color: #dc3545;
+    /* Czerwony kolor */
+    font-size: 0.9rem;
+    /* Mniejsza czcionka */
+    margin-bottom: -5px;
+    /* Przyciągamy ją bliżej właściwej ceny */
+    display: block;
+    /* Żeby była w nowej linii nad ceną */
+}
+
+/* --- Formularz kodu w karcie --- */
+.promo-section-card {
+    margin: 30px 0;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.promo-form-card {
+    display: flex;
+    /* align-items: center; */
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.promo-label {
+    padding-top: 8px;
+    font-weight: 500;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    /* Input nad błędem */
+    flex: 1;
+    /* Zajmij całe wolne miejsce */
+}
+
+.promo-form-card input {
+    width: 100%;
+    /* Rozciągnij się wewnątrz .input-group */
+    height: 38px;
+    /* Sztywna wysokość */
+    padding: 0 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    /* KLUCZOWE: Ramka nie powiększa elementu */
+    outline: none;
+}
+
+.promo-form-card button {
+    height: 38px;
+    /* Ta sama wysokość co input */
+    padding: 0 15px;
+    background-color: #333;
+    color: white;
+    border: none;
+    /* Brak ramki */
+    border-radius: 4px;
+    cursor: pointer;
+    box-sizing: border-box;
+    /* Dla spójności */
+    line-height: 1;
+}
+
+.promo-form-card button:hover {
+    background-color: #555;
+    /* Jaśniejszy odcień po najechaniu */
+}
+
+/* błąd formularza kodu  */
+.input-error {
+    border: 1px solid #dc3545 !important;
+    /* Czerwona ramka */
+    background-color: #fff8f8;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.75rem;
+    /* Malutki druk */
+    margin-top: 4px;
+    /* Lekki odstęp od inputa */
+    line-height: 1.2;
+}
+
+/* --- Stylizacja aktywnego kodu promocyjnego --- */
+
+/* Zielona ramka/tło informująca o sukcesie */
+.promo-active {
+    display: flex;
+    /* Układ wiersza (tak jak formularz) */
+    align-items: center;
+    /* Wyrównanie w pionie */
+    justify-content: space-between;
+    /* Kod po lewej, krzyżyk po prawej */
+
+    background-color: #f0fff4;
+    /* Bardzo delikatna zieleń (lub #f8f9fa jeśli chcesz szary) */
+    padding: 10px 12px;
+    /* Padding identyczny jak w inputach */
+    border: 1px solid #c3e6cb;
+    /* Subtelna ramka sukcesu */
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.promo-info {
+    display: flex;
+    flex-direction: column;
+    /* Nazwa kodu nad zniżką */
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.code-name {
+    font-weight: bold;
+    color: #155724;
+}
+
+.discount-value {
+    font-size: 0.85rem;
+    color: #28a745;
+}
+
+/* Guzik usuwania (X) */
+.btn-remove {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: color 0.2s;
+}
+
+.btn-remove:hover {
+    color: #dc3545;
+}
+
+
+.btn-block {
+    display: block;
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 15px;
+    text-align: center;
+}
+
+
+
+/* --- Style dla pustego koszyka --- */
+
+.empty-cart-message {
+    padding: 40px;
+    text-align: center;
+    background-color: #fff;
+    border: 1px #ddd;
+    border-radius: 8px;
+    color: #666;
+}
+
+/* --- Nieaktywna karta podsumowania --- */
+
+.card-disabled {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+
+.card-disabled h3,
+.card-disabled span,
+.card-disabled strong {
+    color: #999;
+}
+
+.label-disabled {
+    color: #ccc;
+}
+
+.price-disabled {
+    color: #ccc;
+    font-weight: normal;
+}
+
+.input-placeholder-disabled::placeholder {
+    color: #ccc;
+}
+
+.cart-thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+}

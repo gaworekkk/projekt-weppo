@@ -19,7 +19,7 @@ app.set('view engine', 'ejs');
 app.set('views', './views');
 
 // --- Lista Administratorów (Whitelist) ---
-const ADMIN_USERS = ['admin@example.com'];
+const ADMIN_USERS = ['admin'];
 
 // --- Konfiguracja OAuth2 (Google) ---
 const oauth2 = new AuthorizationCode({
@@ -92,6 +92,14 @@ app.get('/', (req, res) => {
 
 app.get('/shop', async (req, res) => {
     const products = await db.getProducts();
+    if (products.length > 0) {
+        console.log("PRZYKŁADOWY PRODUKT Z BAZY:", products[0]);
+    }
+    products.forEach(p => {
+        if (p.image_url === null) {
+            p.image_url = 'http://localhost:3000/images/laptop.jpeg';
+        }
+    });
     res.render('shop', { products });
 });
 
@@ -114,19 +122,32 @@ app.get('/cart', async (req, res) => {
     const allProducts = await db.getProducts();
 
     const cartItems = [];
-    let total = 0;
 
+    // obsługa grupowania wielu wystąpień jednego przedmiotu
+    const counts = {};
     cartIds.forEach(id => {
-        const product = allProducts.find(p => p.id === id);
-        if (product) {
-            cartItems.push(product);
-            total += product.price;
-        }
+        counts[id] = (counts[id] || 0) + 1;
     });
 
+    // 2. Tworzymy listę obiektów produktów z dodanym polem 'qty'
+    let totalGrosze = 0;
+    for (const [idStr, qty] of Object.entries(counts)) {
+        const id = parseInt(idStr);
+        const product = allProducts.find(p => p.id === id);
+        if (product) {
+            const priceGrosze = Math.round(parseFloat(product.price) * 100);
+            const rowTotalGrosze = priceGrosze * qty;
+            cartItems.push({
+                ...product,
+                qty: qty,
+                rowTotal: rowTotalGrosze / 100
+            });
+            totalGrosze += rowTotalGrosze;
+        }
+    }
+
     // Obsługa kodów promocyjnych
-    let discount = 0;
-    let finalTotal = total;
+    let discountGrosze = 0;
     let appliedPromo = null;
 
     if (req.signedCookies.promoCode) {
@@ -134,12 +155,72 @@ app.get('/cart', async (req, res) => {
         const promo = codes.find(c => c.code === req.signedCookies.promoCode);
         if (promo) {
             appliedPromo = promo;
-            discount = Math.round(total * (promo.discount / 100));
-            finalTotal = total - discount;
+            discountGrosze = Math.round(totalGrosze * (promo.discount / 100));
         }
     }
+    const finalTotalGrosze = totalGrosze - discountGrosze;
 
-    res.render('cart', { cartItems, total, appliedPromo, discount, finalTotal });
+    // obsługa wpisania błędnego kodu promocyjnego
+    const promoError = req.signedCookies.promoError || null;
+    if (promoError) res.clearCookie('promoError')
+
+    const isEmpty = cartItems.length === 0;
+
+    res.render('cart', {
+        cartItems,
+        total: totalGrosze / 100,
+        appliedPromo,
+        discount: discountGrosze / 100,
+        finalTotal: finalTotalGrosze / 100,
+        promoError,
+        isEmpty
+    });
+});
+// --- NOWE ENDPOINTY: Obsługa ilości i usuwania ---
+
+// Zwiększ ilość (+1)
+app.post('/cart/increase/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const cart = req.signedCookies.cart || [];
+
+    const products = await db.getProducts();
+    const product = products.find(p => p.id === id);
+
+    const currentQty = cart.filter(itemId => itemId === id).length;
+
+    if (product && currentQty < product.quantity) {
+        cart.push(id);
+        res.cookie('cart', cart, { signed: true, httpOnly: true });
+    }
+
+    res.redirect('/cart');
+});
+
+// Zmniejsz ilość (-1)
+app.post('/cart/decrease/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    let cart = req.signedCookies.cart || [];
+
+    // Znajdź indeks pierwszego wystąpienia tego produktu
+    const index = cart.indexOf(id);
+    if (index > -1) {
+        cart.splice(index, 1); // Usuń jeden element
+    }
+
+    res.cookie('cart', cart, { signed: true, httpOnly: true });
+    res.redirect('/cart');
+});
+
+// Usuń całkowicie produkt z koszyka (Kosz)
+app.post('/cart/remove/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    let cart = req.signedCookies.cart || [];
+
+    // Filtrujemy koszyk, zostawiając tylko ID inne niż usuwane
+    cart = cart.filter(itemId => itemId !== id);
+
+    res.cookie('cart', cart, { signed: true, httpOnly: true });
+    res.redirect('/cart');
 });
 
 // Składanie zamówienia (czyszczenie koszyka)
@@ -155,7 +236,7 @@ app.post('/cart/checkout', async (req, res) => {
 
     // Weryfikacja stanów magazynowych
     // Zliczamy ilość wystąpień każdego produktu w koszyku
-        const cartCounts = {};
+    const cartCounts = {};
     cartIds.forEach(id => { cartCounts[id] = (cartCounts[id] || 0) + 1; });
 
     for (const [idStr, count] of Object.entries(cartCounts)) {
@@ -171,7 +252,7 @@ app.post('/cart/checkout', async (req, res) => {
     }
 
     if (!validStock) {
-        return res.redirect('/cart'); 
+        return res.redirect('/cart');
     }
 
     // Zapis zmian w produktach (zmniejszenie stanów)
@@ -200,7 +281,7 @@ app.post('/cart/checkout', async (req, res) => {
 
     res.clearCookie('cart');
     res.clearCookie('promoCode');
-    res.render('cart', { cartItems: [], total: 0, message: 'Dziękujemy za złożenie zamówienia!' });
+    res.render('cart', { cartItems: [], total: 0, message: 'Thank you for placing your order!' });
 });
 
 // Aplikowanie kodu promocyjnego
@@ -209,6 +290,9 @@ app.post('/cart/apply-promo', async (req, res) => {
     const codes = await db.getPromoCodes();
     if (codes.find(c => c.code === code)) {
         res.cookie('promoCode', code, { signed: true, httpOnly: true });
+    } else {
+        // błędny kod
+        res.cookie('promoError', 'Inactive code', { signed: true, httpOnly: true });
     }
     res.redirect('/cart');
 });
@@ -222,7 +306,7 @@ app.get('/register', (req, res) => {
 
 app.post('/register', async (req, res) => {
     const { txtUser: username, txtPwd: password, txtName: displayName } = req.body;
-    
+
     const users = await db.getUsers();
 
     if (users.find(u => u.username === username)) {
@@ -289,47 +373,73 @@ app.get('/callback', async (req, res) => {
 });
 
 // Panel Admina (tylko dla roli 'admin')
-app.get('/admin', authorize('admin'), (req, res) => {
-    res.render('admin', { products: db.getProducts(), promoCodes: db.getPromoCodes(), categories: db.getCategories() });
+app.get('/admin', authorize('admin'), async (req, res) => {
+    try {
+        const products = await db.getProducts();
+        const promoCodes = await db.getPromoCodes();
+        const categories = await db.getCategories();
+        res.render('admin', { products, promoCodes, categories });
+    } catch (err) {
+        console.error("Admin Panel Error:", err);
+        res.status(500).send("Server Error");
+    }
 });
 
 // Dodawanie produktu
-app.post('/admin/add-product', authorize('admin'), (req, res) => {
-    const { producer, name, price, quantity, description, category } = req.body;
-    const products = db.getProducts();
-    
-    db.saveProduct({
-        id: Date.now(),
-        producer,
-        name,
-        price: parseFloat(price),
-        quantity: parseInt(quantity),
-        description,
-        category
-    });
+app.post('/admin/add-product', authorize('admin'), async (req, res) => {
+    try {
+        const { producer, name, price, quantity, description, category } = req.body;
 
-    res.redirect('/admin');
+        await db.saveProduct({
+            // id: Date.now(),
+            producer,
+            name,
+            price: parseFloat(price),
+            quantity: parseInt(quantity),
+            description,
+            category
+        });
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error adding product:", err);
+        res.redirect('/admin');
+    }
 });
 
 // Usuwanie produktu
-app.post('/admin/delete-product', authorize('admin'), (req, res) => {
-    const id = parseInt(req.body.id);
-    db.deleteProduct(id);
-    res.redirect('/admin');
+app.post('/admin/delete-product', authorize('admin'), async (req, res) => {
+    try {
+        const id = parseInt(req.body.id);
+        await db.deleteProduct(id);
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error deleting product:", err);
+        res.redirect('/admin');
+    }
 });
 
 // Dodawanie kodu promocyjnego
-app.post('/admin/add-promo', authorize('admin'), (req, res) => {
-    const { code, discount } = req.body;
-    db.savePromoCode({ code, discount: parseInt(discount) });
-    res.redirect('/admin');
+app.post('/admin/add-promo', authorize('admin'), async (req, res) => {
+    try {
+        const { code, discount } = req.body;
+        await db.savePromoCode({ code, discount: parseInt(discount) });
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error adding promo:", err);
+        res.redirect('/admin');
+    }
 });
 
 // Usuwanie kodu promocyjnego
-app.post('/admin/delete-promo', authorize('admin'), (req, res) => {
-    const { code } = req.body;
-    db.deletePromoCode(code);
-    res.redirect('/admin');
+app.post('/admin/delete-promo', authorize('admin'), async (req, res) => {
+    try {
+        const { code } = req.body;
+        await db.deletePromoCode(code);
+        res.redirect('/admin');
+    } catch (err) {
+        console.error("Error deleting promo:", err);
+        res.redirect('/admin');
+    }
 });
 
 // Obsługa logowania standardowego
@@ -359,5 +469,13 @@ app.listen(port, () => {
 
 
 app.get('/account', authorize(), (req, res) => {
-    res.render('account'); // user jest przekazywany przez res.locals lub authorize
+    const mockOrders = [
+        // { id: 1001, date: '2026-01-15', total: 299.99, status: 'Completed', itemsCount: 2 },
+        // { id: 1002, date: '2026-01-28', total: 4500.00, status: 'Processing', itemsCount: 1 },
+        // { id: 1003, date: '2026-02-01', total: 49.90, status: 'Cancelled', itemsCount: 3 }
+    ];
+    res.render('account', {
+        orders: mockOrders,
+        user: req.user
+    });
 });

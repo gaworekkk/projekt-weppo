@@ -1,0 +1,101 @@
+.account-page {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.account-header {
+    border-bottom: 2px solid var(--dark-background);
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.account-header h1 {
+    margin: 0;
+    color: #333;
+}
+
+.user-info {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.account-content {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* Tabela zamówień */
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.orders-table th,
+.orders-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.orders-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+}
+
+.orders-table tr:last-child td {
+    border-bottom: none;
+}
+
+
+
+/* Przyciski */
+.btn-details {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.btn-details:hover {
+    background-color: #5a6268;
+}
+
+.account-actions {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.btn-logout {
+    display: inline-block;
+    background-color: var(--primary);
+    color: white;
+    padding: 10px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn-logout:hover {
+    background-color: var(--primary-hover);
+}
+
+.text-center {
+    text-align: center !important;
+    font-size: 0.9em;
+}

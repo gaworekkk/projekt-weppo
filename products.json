@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "producer": "Apple",
+    "name": "MacBook Pro 14inch M4 Max 512GB SSD",
+    "price": 13499,
+    "quantity": 4,
+    "description": "Najpotężniejszy laptop dla profesjonalistów.",
+    "category": "Laptopy"
+  },
+  {
+    "id": 2,
+    "producer": "Logitech",
+    "name": "Myszka Bezprzewodowa",
+    "price": 150,
+    "quantity": 19,
+    "description": "Ergonomiczna mysz do pracy biurowej.",
+    "category": "Akcesoria"
+  },
+  {
+    "id": 3,
+    "producer": "Keychron",
+    "name": "Klawiatura Mechaniczna",
+    "price": 300,
+    "quantity": 7,
+    "description": "Klawiatura z podświetleniem RGB.",
+    "category": "Akcesoria"
+  },
+  {
+    "id": 4,
+    "producer": "Dell",
+    "name": "Monitor 4K",
+    "price": 1200,
+    "quantity": 8,
+    "description": "Krystalicznie czysty obraz 27 cali.",
+    "category": "Monitory"
+  },
+  {
+    "id": 5,
+    "producer": "Sony",
+    "name": "Słuchawki",
+    "price": 250,
+    "quantity": 15,
+    "description": "Słuchawki z redukcją szumów.",
+    "category": "Audio"
+  },
+  {
+    "id": 6,
+    "producer": "SteelSeries",
+    "name": "Podkładka pod mysz",
+    "price": 50,
+    "quantity": 50,
+    "description": "Duża podkładka gamingowa.",
+    "category": "Akcesoria"
+  }
+]

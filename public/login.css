@@ -1,0 +1,83 @@
+/* LOGIN VIEW */
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-card {
+    min-width: 350px;
+    background: white;
+    padding: 2rem;
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-card h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 1.5rem;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+input:focus {
+    border-color: #83bbff;
+    outline: none;
+}
+
+
+.btn-google {
+    background-color: #db4437;
+    /* Kolor Google */
+    color: white;
+
+}
+
+.btn-google:hover {
+    background-color: #c53929;
+}
+
+.divider {
+    border-top: 1px solid #eee;
+    margin: 20px 0 10px 0;
+}
+
+.text-center {
+    text-align: center;
+    color: #7b7b7b;
+    margin: 0 0 10px 0;
+    font-size: 0.8rem;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.register-link a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.register-link a:hover {
+    color: var(--primary-hover);
+}

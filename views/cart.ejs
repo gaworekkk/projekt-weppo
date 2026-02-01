@@ -1,14 +1,154 @@
 <%- include('partials/header.ejs') %>
 
-    <h1>Twój Koszyk</h1>
+<div class="container">
+    <h1>Your Cart</h1>
 
-    <p>Aktualnie Twój koszyk jest pusty.</p>
-    
-    <div style="border: 1px dashed gray; padding: 20px; text-align: center; color: gray;">
-        [Lista produktów w koszyku]
-    </div>
+    <% if (locals.message) { %>
+        <div class="alert-success">
+            <%= message %>
+        </div>
+    <% } %>
 
-    <br>
-    <a href="/shop">Wróć do sklepu</a>
+    <% 
+        const isEmpty = (!locals.cartItems || cartItems.length === 0);
+    %>
+        
+    <div class="cart-layout">
+        
+        <div class="cart-left">
+            <% if (isEmpty) { %>
+                <div class="empty-cart-message">
+                    <h2>Your cart is empty</h2>
+                    <br>
+                    <a href="/shop" class="btn btn-primary">Go back to shop</a>
+                </div>
+            <% } else { %>
+                <table class="cart-table">
+                    <tbody>
+                        <% cartItems.forEach(function(item) { %>
+                            <tr class="cart-row">
+                                <td>
+                                    <img class="cart-thumbnail" src=" <%= item.image_url ? item.image_url : 'http://localhost:3000/images/laptop.jpeg'%>">
+                                </td>
+                                <td>
+                                    <div class="product-info">
+                                        <div>
+                                            <strong><%= item.name %></strong><br>
+                                            <small style="color: #666;"><%= item.producer %></small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="quantity-control">
+                                        <form action="/cart/decrease/<%= item.id %>" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn-qty">&minus;</button>
+                                        </form>
+                                        <span class="qty-display"><%= item.qty %></span>
+                                        <form action="/cart/increase/<%= item.id %>" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn-qty">&plus;</button>
+                                        </form>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <strong><%= item.rowTotal %> zł</strong><br>
+                                    <small class="text-muted"><%= item.price %> zł / szt.</small>
+                                </td>
+                                <td class="text-center">
+                                    <form action="/cart/remove/<%= item.id %>" method="POST">
+                                        <button type="submit" class="btn-trash">&times;</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 20px;">
+                    <a href="/shop" class="btn btn-secondary">Continue shopping</a>
+                </div>
+            <% } %>
+        </div>
+
+        <div class="cart-right-card <%= isEmpty ? 'card-disabled' : '' %>">
+            <h3>Summary</h3>
+            
+            <% 
+                let deliveryCost = 0;
+                let totalToPay = 0;
+                
+                // Liczymy koszty tylko jeśli koszyk nie jest pusty
+                if (!isEmpty) {
+                    deliveryCost = (total > 500) ? 0 : 20;
+                    totalToPay = finalTotal + deliveryCost;
+                }
+            %>
+
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <strong><%= isEmpty ? '-' : total + ' zł' %></strong>
+            </div>
+
+            <div class="summary-row" style="color: #666;">
+                <span>Delivery:</span>
+                <strong>
+                    <% if (isEmpty) { %>
+                        -
+                    <% } else if (deliveryCost === 0) { %>
+                        <span style="color: green;">FREE</span>
+                    <% } else { %>
+                        <%= deliveryCost %> zł
+                    <% } %>
+                </strong>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+            <div class="promo-section-card">
+                <% if (!isEmpty && locals.appliedPromo) { %>
+                    <div class="promo-active">
+                        <div class="promo-info">
+                            <span class="code-name">Promo Code: <%= appliedPromo.code %></span>
+                            <span class="discount-value">-<%= appliedPromo.discount %>% (<%= discount %> zł)</span>
+                        </div>
+                        <form action="/cart/remove-promo" method="POST" style="margin:0;">
+                            <button type="submit" class="btn-remove">&times;</button>
+                        </form>
+                    </div>
+                <% } else { %>
+                    <div class="promo-input-container">
+                        <form action="/cart/apply-promo" method="POST" class="promo-form-card">
+                            <label class="promo-label <%= isEmpty ? 'label-disabled' : '' %>">Promo Code:</label>
+                            <div class="input-group">
+                                <input 
+                                    type="text" 
+                                    name="code" 
+                                    placeholder="<%= isEmpty ? 'Empty cart' : 'Enter code...' %>" 
+                                    class="<%= locals.promoError ? 'input-error' : '' %>"
+                                    <%= isEmpty ? 'disabled' : '' %>
+                                >
+                            </div>
+                            <button type="submit" <%= isEmpty ? 'disabled' : '' %>>Apply</button>
+                        </form>
+                    </div>
+                <% } %>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+            <div class="total-row">
+                <span>Total:</span>
+                <span class="total-price<%= isEmpty ? 'price-disabled' : '' %>">
+                    <%= isEmpty ? '-' : totalToPay + ' zł' %>
+                </span>
+            </div>
+
+            <form action="/cart/checkout" method="POST" style="margin-top: 20px;">
+                <button type="submit" class="btn btn-primary btn-block" <%= isEmpty ? 'disabled' : '' %>>
+                    Checkout
+                </button>
+            </form>
+        </div>
+
+    </div> </div>
 
 <%- include('partials/footer.ejs') %>

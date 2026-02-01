@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sklep Internetowy</title>
+    <title>Our Shop</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,6 +11,13 @@
 
     <link rel="stylesheet" href="/general.css">
     <link rel="stylesheet" href="/header.css">
+    <link rel="stylesheet" href="/shop.css">
+    <link rel="stylesheet" href="/cart.css">
+    <link rel="stylesheet" href="/login.css">
+    <link rel="stylesheet" href="/account.css">
+    <link rel="stylesheet" href="/admin.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
@@ -25,10 +32,8 @@
             <a href="/cart">Cart</a>
 
             <% if (typeof user !== 'undefined' && user) { %>
-                <a href="/account" title="Twoje konto">
-                    <span style="border: 1px solid black; border-radius: 50%; padding: 5px 10px;">
-                        👤
-                    </span>
+                <a href="/account" title="Account">
+                    <i class="fa-solid fa-user"></i>
                 </a>
             <% } else { %>
                 <a href="/login">Sign In</a>
