@@ -173,7 +173,8 @@ app.get('/cart', async (req, res) => {
         discount: discountGrosze / 100,
         finalTotal: finalTotalGrosze / 100,
         promoError,
-        isEmpty
+        isEmpty,
+        message: null // Dodajemy, aby widok koszyka nie wyrzucał błędu przy wejściu
     });
 });
 // --- NOWE ENDPOINTY: Obsługa ilości i usuwania ---
@@ -223,20 +224,77 @@ app.post('/cart/remove/:id', (req, res) => {
     res.redirect('/cart');
 });
 
-// Składanie zamówienia (czyszczenie koszyka)
-app.post('/cart/checkout', async (req, res) => {
+// --- PROCES ZAMÓWIENIA (CHECKOUT) ---
+
+// 1. Przekierowanie ze starego przycisku w koszyku do strony płatności
+app.post('/cart/checkout', (req, res) => {
+    res.redirect('/checkout');
+});
+
+// 2. Wyświetlenie strony płatności (GET)
+app.get('/checkout', authorize(), async (req, res) => {
     const cartIds = req.signedCookies.cart || [];
     if (cartIds.length === 0) {
         return res.redirect('/cart');
     }
-    console.log("Przetwarzanie zamówienia dla koszyka:", cartIds);
+
+    const allProducts = await db.getProducts();
+    const cartItems = [];
+    
+    // Zliczanie produktów
+    const counts = {};
+    cartIds.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+
+    let totalGrosze = 0;
+    for (const [idStr, qty] of Object.entries(counts)) {
+        const id = parseInt(idStr);
+        const product = allProducts.find(p => p.id === id);
+        if (product) {
+            const priceGrosze = Math.round(parseFloat(product.price) * 100);
+            const rowTotalGrosze = priceGrosze * qty;
+            cartItems.push({
+                ...product,
+                qty: qty,
+                rowTotal: rowTotalGrosze / 100
+            });
+            totalGrosze += rowTotalGrosze;
+        }
+    }
+
+
+    // Obliczanie zniżek
+    let discountGrosze = 0;
+    let appliedPromo = null;
+    if (req.signedCookies.promoCode) {
+        const codes = await db.getPromoCodes();
+        const promo = codes.find(c => c.code === req.signedCookies.promoCode);
+        if (promo) {
+            appliedPromo = promo;
+            discountGrosze = Math.round(totalGrosze * (promo.discount / 100));
+        }
+    }
+    const finalTotalGrosze = totalGrosze - discountGrosze;
+
+    res.render('checkout', {
+        cartItems,
+        total: totalGrosze / 100,
+        discount: discountGrosze / 100,
+        finalTotal: finalTotalGrosze / 100,
+        appliedPromo
+    });
+});
+
+// 3. Finalizacja płatności i zapis zamówienia (POST)
+app.post('/checkout', authorize(), async (req, res) => {
+    const cartIds = req.signedCookies.cart || [];
+    if (cartIds.length === 0) {
+        return res.redirect('/cart');
+    }
 
     const products = await db.getProducts();
     let total = 0;
     let validStock = true;
 
-    // Weryfikacja stanów magazynowych
-    // Zliczamy ilość wystąpień każdego produktu w koszyku
     const cartCounts = {};
     cartIds.forEach(id => { cartCounts[id] = (cartCounts[id] || 0) + 1; });
 
@@ -249,22 +307,29 @@ app.post('/cart/checkout', async (req, res) => {
             break;
         }
         total += product.price * count;
-        product.quantity -= count;
+        product.quantity -= count; // Tymczasowa aktualizacja w pamięci
     }
 
     if (!validStock) {
         return res.redirect('/cart');
     }
 
-    // Zapis zmian w produktach (zmniejszenie stanów)
-    for (const p of products) {
-        await db.saveProduct({
-            name: p.name,
-            description: p.description,
-            price: p.price,
-            quantity: p.quantity,
-            categoryId: p.category_id || 1
-        });
+    // Zapis zmian w produktach (trwała aktualizacja w bazie)
+    for (const [idStr, count] of Object.entries(cartCounts)) {
+        const id = parseInt(idStr);
+        const product = products.find(p => p.id === id);
+        if (product) {
+            await db.updateProductQuantity(id, product.quantity);
+        }
+    }
+
+    // Uwzględnienie kodu promocyjnego w cenie końcowej zamówienia
+    if (req.signedCookies.promoCode) {
+        const codes = await db.getPromoCodes();
+        const promo = codes.find(c => c.code === req.signedCookies.promoCode);
+        if (promo) {
+            total = total * (1 - promo.discount / 100);
+        }
     }
 
     // Zapis zamówienia
@@ -282,7 +347,18 @@ app.post('/cart/checkout', async (req, res) => {
 
     res.clearCookie('cart');
     res.clearCookie('promoCode');
-    res.render('cart', { cartItems: [], total: 0, message: 'Thank you for placing your order!' });
+    
+    // Wyświetlenie potwierdzenia (możesz tu przekierować na dedykowaną stronę sukcesu)
+    res.render('cart', { 
+        cartItems: [], 
+        total: 0, 
+        message: 'Thank you for your payment! Order placed successfully.',
+        appliedPromo: null,
+        discount: 0,
+        finalTotal: 0,
+        promoError: null,
+        isEmpty: true
+    });
 });
 
 // Aplikowanie kodu promocyjnego
@@ -326,7 +402,9 @@ app.post('/register', async (req, res) => {
 
 // Wylogowanie
 app.get('/logout', authorize(), (req, res) => {
-    res.cookie('user', '', { maxAge: -1 });
+    res.clearCookie('user');
+    res.clearCookie('cart');
+    res.clearCookie('promoCode');
     res.redirect('/');
 });
 

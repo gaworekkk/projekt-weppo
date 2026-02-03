@@ -19,7 +19,7 @@
     "express": "^5.2.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "pg": "^8.17.2",
+    "pg": "^8.18.0",
     "simple-oauth2": "^5.1.0"
   },
   "devDependencies": {
