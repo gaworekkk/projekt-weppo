@@ -70,3 +70,40 @@ h1 {
 .product button:hover {
     background-color: var(--primary-hover);
 }
+
+.product button:disabled {
+    background-color: #eee;
+    color: #bbb;
+    cursor: not-allowed;
+    border: 1px solid #bbb;
+}
+
+
+/* added product to cart success message */
+
+.notification-bar {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.notification-bar a {
+    margin-left: 15px;
+    text-decoration: underline;
+    color: #155724;
+    font-weight: 800;
+}
+
+.notification-bar a:hover {
+    color: #0b2e13;
+}
