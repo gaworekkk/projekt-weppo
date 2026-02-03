@@ -100,20 +100,21 @@ app.get('/shop', async (req, res) => {
             p.image_url = 'http://localhost:3000/images/laptop.jpeg';
         }
     });
-    res.render('shop', { products });
+    const showSuccessMessage = req.query.added === 'true';
+    res.render('shop', { products, showSuccessMessage });
 });
 
 app.get('/about', (req, res) => {
     res.render('about');
 });
 
-// Dodawanie do koszyka nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+// Dodawanie do koszyka 
 app.post('/cart/add/:id', (req, res) => {
     const productId = parseInt(req.params.id);
     const cart = req.signedCookies.cart || [];
     cart.push(productId);
     res.cookie('cart', cart, { signed: true, httpOnly: true });
-    res.redirect('/shop');
+    res.redirect('/shop?added=true');
 });
 
 // Wyświetlanie koszyka

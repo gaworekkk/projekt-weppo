@@ -1,5 +1,19 @@
 <%- include('partials/header.ejs') %>
 
+    <% if (locals.showSuccessMessage) { %>
+        <div class="notification-bar">
+            Product added to cart!
+            <a href="/cart">Go to cart</a>
+        </div>
+
+        <script>
+            setTimeout(() => {
+                window.history.replaceState(null, null, window.location.pathname);
+                document.querySelector('.notification-bar').style.display = 'none';
+            }, 3000);
+        </script>
+    <% } %>
+
     <h1>Our Products</h1>
 
     <div class="products-grid">
@@ -9,11 +23,16 @@
                 <h3><%= product.producer %></h3>
                 <p class="name"><%= product.name %></p>
                 <p class="price"><%= product.price %> zł</p>
-                <form action="/cart/add/<%= product.id %>" method="POST">
-                        <button type="submit">
-                            Add to cart
-                        </button>
-                </form>
+
+                <% if (product.quantity > 0) { %>
+                    <form action="/cart/add/<%= product.id %>" method="POST">
+                            <button type="submit">
+                                Add to cart
+                            </button>
+                    </form>
+                <% } else { %>
+                    <button disabled>Out of stock</button>
+                <% } %>
             </div>
         <% }); %>
     </div>
