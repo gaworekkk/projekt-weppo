@@ -71,17 +71,6 @@
 
         <div class="cart-right-card <%= isEmpty ? 'card-disabled' : '' %>">
             <h3>Summary</h3>
-            
-            <% 
-                let deliveryCost = 0;
-                let totalToPay = 0;
-                
-                // Liczymy koszty tylko jeśli koszyk nie jest pusty
-                if (!isEmpty) {
-                    deliveryCost = (total > 500) ? 0 : 20;
-                    totalToPay = finalTotal + deliveryCost;
-                }
-            %>
 
             <div class="summary-row">
                 <span>Subtotal:</span>
