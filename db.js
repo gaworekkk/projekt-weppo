@@ -4,7 +4,7 @@ const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
   database: 'sklep_db',
-  password: 'haslo123',
+  password: 'haslo',
   port: 5432,
 });
 
@@ -115,22 +115,54 @@ async function saveOrder({ userId, items, total }) {
     try {
         await client.query('BEGIN');
 
-        const { rows } = await client.query(`
-            INSERT INTO orders (user_id, total)
-            VALUES ($1, $2)
-            RETURNING id
-        `, [userId, total]);
+        // 1. Sprawdzenie i rezerwacja stocku (LOCK)
+        for (const item of items) {
+            const { rows } = await client.query(
+                `SELECT quantity
+                 FROM products
+                 WHERE id = $1
+                 FOR UPDATE`,
+                [item.productId]
+            );
+
+            if (rows.length === 0) {
+                throw new Error(`Product ${item.productId} not found`);
+            }
+
+            if (rows[0].quantity < item.quantity) {
+                throw new Error(`Insufficient stock for product ${item.productId}`);
+            }
+
+            await client.query(
+                `UPDATE products
+                 SET quantity = quantity - $1
+                 WHERE id = $2`,
+                [item.quantity, item.productId]
+            );
+        }
+
+        // 2. Zapis zamówienia
+        const { rows } = await client.query(
+            `INSERT INTO orders (user_id, total)
+             VALUES ($1, $2)
+             RETURNING id`,
+            [userId, total]
+        );
 
         const orderId = rows[0].id;
 
+        // 3. Zapis pozycji zamówienia
         for (const item of items) {
-            await client.query(`
-                INSERT INTO order_items (id, product_id, quantity, price)
-                VALUES ($1, $2, $3, $4)
-            `, [orderId, item.productId, item.quantity, item.price]);
+            await client.query(
+                `INSERT INTO order_items (order_id, product_id, quantity, price)
+                 VALUES ($1, $2, $3, $4)`,
+                [orderId, item.productId, item.quantity, item.price]
+            );
         }
 
         await client.query('COMMIT');
+        return orderId;
+
     } catch (err) {
         await client.query('ROLLBACK');
         throw err;
@@ -138,6 +170,67 @@ async function saveOrder({ userId, items, total }) {
         client.release();
     }
 }
+
+async function getOrders(userId) {
+    const client = await pool.connect();
+
+    try {
+        // 1️⃣ Pobranie wszystkich zamówień użytkownika
+        const { rows: orders } = await client.query(
+            `SELECT id, total, created_at
+             FROM orders
+             WHERE user_id = $1
+             ORDER BY created_at DESC`,
+            [userId]
+        );
+
+        if (orders.length === 0) return [];
+
+        // 2️⃣ Pobranie wszystkich pozycji zamówień wraz z nazwami produktów
+        const orderIds = orders.map(o => o.id);
+        const { rows: items } = await client.query(
+            `SELECT 
+                 oi.order_id, 
+                 oi.product_id, 
+                 oi.quantity, 
+                 oi.price, 
+                 p.name AS product_name
+             FROM order_items oi
+             JOIN products p ON oi.product_id = p.id
+             WHERE oi.order_id = ANY($1::int[])`,
+            [orderIds]
+        );
+
+        // 3️⃣ Grupowanie pozycji pod zamówieniami
+        const ordersWithItems = orders.map(order => {
+            const orderItems = items
+                .filter(i => i.order_id === order.id)
+                .map(i => ({
+                    productId: i.product_id,
+                    name: i.product_name,
+                    quantity: i.quantity,
+                    price: parseFloat(i.price) // konwersja na liczbę
+                }));
+
+            const itemsCount = orderItems.reduce((sum, i) => sum + i.quantity, 0);
+
+            return {
+                id: order.id,
+                date: order.created_at,
+                total: parseFloat(order.total), // konwersja na liczbę
+                itemsCount,
+                items: orderItems
+            };
+        });
+
+        return ordersWithItems;
+
+    } finally {
+        client.release();
+    }
+}
+
+
 
 module.exports = {
     getUsers,
@@ -150,5 +243,6 @@ module.exports = {
     getPromoCodes,
     savePromoCode,
     deletePromoCode,
-    saveOrder
+    saveOrder,
+    getOrders
 };
