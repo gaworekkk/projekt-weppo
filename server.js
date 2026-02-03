@@ -166,12 +166,25 @@ app.get('/cart', async (req, res) => {
 
     const isEmpty = cartItems.length === 0;
 
+    const total = totalGrosze / 100;
+    const finalTotal = finalTotalGrosze / 100;
+
+    let deliveryCost = 0;
+    let totalToPay = 0;
+
+    if (!isEmpty) {
+        deliveryCost = (total > 500) ? 0 : 20;
+        totalToPay = finalTotal + deliveryCost;
+    }
+
     res.render('cart', {
         cartItems,
-        total: totalGrosze / 100,
+        total,
         appliedPromo,
         discount: discountGrosze / 100,
-        finalTotal: finalTotalGrosze / 100,
+        finalTotal,
+        deliveryCost,
+        totalToPay,
         promoError,
         isEmpty,
         message: null // Dodajemy, aby widok koszyka nie wyrzucał błędu przy wejściu
@@ -240,7 +253,7 @@ app.get('/checkout', authorize(), async (req, res) => {
 
     const allProducts = await db.getProducts();
     const cartItems = [];
-    
+
     // Zliczanie produktów
     const counts = {};
     cartIds.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
@@ -275,11 +288,19 @@ app.get('/checkout', authorize(), async (req, res) => {
     }
     const finalTotalGrosze = totalGrosze - discountGrosze;
 
+    const total = totalGrosze / 100;
+    const finalTotal = finalTotalGrosze / 100;
+
+    let deliveryCost = (total > 500) ? 0 : 20;
+    let totalToPay = finalTotal + deliveryCost;
+
     res.render('checkout', {
         cartItems,
-        total: totalGrosze / 100,
+        total,
         discount: discountGrosze / 100,
-        finalTotal: finalTotalGrosze / 100,
+        finalTotal,
+        deliveryCost,
+        totalToPay,
         appliedPromo
     });
 });
@@ -347,11 +368,11 @@ app.post('/checkout', authorize(), async (req, res) => {
 
     res.clearCookie('cart');
     res.clearCookie('promoCode');
-    
+
     // Wyświetlenie potwierdzenia (możesz tu przekierować na dedykowaną stronę sukcesu)
-    res.render('cart', { 
-        cartItems: [], 
-        total: 0, 
+    res.render('cart', {
+        cartItems: [],
+        total: 0,
         message: 'Thank you for your payment! Order placed successfully.',
         appliedPromo: null,
         discount: 0,
@@ -372,6 +393,14 @@ app.post('/cart/apply-promo', async (req, res) => {
         res.cookie('promoError', 'Inactive code', { signed: true, httpOnly: true });
     }
     res.redirect('/cart');
+});
+
+// Remove promo code endpoint
+app.post('/cart/remove-promo', (req, res) => {
+    res.clearCookie('promoCode');
+
+    const returnUrl = req.body.returnUrl || '/cart';
+    res.redirect(returnUrl);
 });
 
 // Formularz rejestracji
@@ -478,7 +507,7 @@ app.post('/admin/add-product', authorize('admin'), async (req, res) => {
             price: parseFloat(price),
             quantity: parseInt(quantity),
             description,
-            image_url, 
+            image_url,
             category: parseInt(category)
         });
         res.redirect('/admin');

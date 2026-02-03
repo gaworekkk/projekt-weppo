@@ -128,13 +128,6 @@ textarea {
     border-radius: 4px;
 }
 
-.code-name {
-    font-weight: bold;
-    color: #007bff;
-    font-family: monospace;
-    font-size: 1.1em;
-    padding-left: 10px;
-}
 
 .btn-small-delete {
     background: #e9ecef;

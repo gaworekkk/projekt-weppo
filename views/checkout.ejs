@@ -1,0 +1,192 @@
+<%- include('partials/header.ejs') %>
+
+<div class="container checkout-page">
+    <h1>Checkout</h1>
+
+    <div class="checkout-layout">
+        
+        <div class="checkout-form-section">
+            <form action="/checkout" method="POST" id="checkout-form">
+                
+                <section class="form-section">
+                    <h2><i class="fa-solid fa-truck-fast"></i> Shipping Address</h2>
+                    
+                    <div class="form-row">
+                        <div class="checkout-form-group half">
+                            <label>First Name</label>
+                            <input type="text" name="firstName" placeholder="John" required>
+                        </div>
+                        <div class="checkout-form-group half">
+                            <label>Last Name</label>
+                            <input type="text" name="lastName" placeholder="Doe" required>
+                        </div>
+                    </div>
+
+                    <div class="checkout-form-group">
+                        <label>Address</label>
+                        <input type="text" name="address" placeholder="123 Main St" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="checkout-form-group half">
+                            <label>City</label>
+                            <input type="text" name="city" placeholder="New York" required>
+                        </div>
+                        <div class="checkout-form-group half">
+                            <label>Zip Code</label>
+                            <input type="text" 
+                                name="zip" 
+                                id="zip-code" 
+                                placeholder="00-000" 
+                                maxlength="6" 
+                                pattern="\d{2}-\d{3}" 
+                                title="Format: 00-000"
+                                inputmode="numeric"
+                                required>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h2><i class="fa-regular fa-credit-card"></i> Payment Details</h2>
+                    
+                    <div class="checkout-form-group">
+                        <label>Card Number</label>
+                        <input type="text" 
+                            name="cardNumber"
+                            id="card-number"
+                            placeholder="0000 0000 0000 0000" 
+                            maxlength="19" 
+                            pattern="\d{4} \d{4} \d{4} \d{4}" 
+                            inputmode="numeric" 
+                            autocomplete="cc-number" 
+                            required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="checkout-form-group half">
+                            <label>Expiry Date</label>
+                            <input type="text" 
+                                name="cardExpiry" 
+                                id="card-expiry" 
+                                placeholder="MM/YY" 
+                                maxlength="5" 
+                                pattern="(0[1-9]|1[0-2])\/[0-9]{2}" 
+                                inputmode="numeric" 
+                                autocomplete="cc-exp"
+                                required>
+                        </div>
+                        <div class="checkout-form-group half">
+                            <label>CVV</label>
+                            <input type="text" 
+                                name="cardCvc" 
+                                id="card-cvc" 
+                                placeholder="123" 
+                                maxlength="3" 
+                                pattern="\d{3}" 
+                                inputmode="numeric" 
+                                autocomplete="cc-csc"
+                                required>
+                        </div>
+                    </div>
+                </section>
+
+                <button type="submit" class="btn btn-primary btn-block">Pay & Place Order</button>
+            </form>
+        </div>
+
+        <div class="cart-right-card">
+                <h2>Order Summary</h2>
+                
+                <div class="summary-items">
+                    <% cartItems.forEach(item => { %>
+                        <div class="summary-item">
+                            <div class="item-info">
+                                <span class="item-name"><%= item.name %></span>
+                                <span class="item-qty">x<%= item.qty %></span>
+                            </div>
+                            <span class="item-price"><%= item.rowTotal.toFixed(2) %> zł</span>
+                        </div>
+                    <% }) %>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span><%= total.toFixed(2) %> zł</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery:</span>
+                    <span><%= deliveryCost.toFixed(2) %> zł</span>
+                </div>
+
+                <% if (appliedPromo) { %>
+                    <div class="total-row discount-row">
+                        <span>Discount (<%= appliedPromo.code %>):</span>
+                        <span>-<%= discount.toFixed(2) %> zł</span>
+                    </div>
+                <% } %>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+                
+                <div class="total-row">
+                    <span>Total to Pay:</span>
+                    <span><%= totalToPay.toFixed(2) %> zł</span>
+                </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const numberInput = document.getElementById('card-number');
+        const expiryInput = document.getElementById('card-expiry');
+        const cvcInput = document.getElementById('card-cvc');
+        const zipInput = document.getElementById('zip-code');
+
+        numberInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ''); 
+            value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+            e.target.value = value;
+        });
+
+        expiryInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ''); 
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            
+            e.target.value = value;
+        });
+
+        expiryInput.addEventListener('blur', (e) => {
+            const value = e.target.value;
+            if (value.length === 5) {
+                const month = parseInt(value.split('/')[0]);
+                if (month > 12 || month === 0) {
+                    alert('Invalid month! Please use 01-12.');
+                    e.target.value = '';
+                }
+            }
+        });
+
+        cvcInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        if (zipInput) { 
+            zipInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, ''); 
+                if (value.length > 2) {
+                    value = value.substring(0, 2) + '-' + value.substring(2, 5);
+                }
+                
+                e.target.value = value;
+            });
+        }
+    });
+</script>
+
+<%- include('partials/footer.ejs') %>
