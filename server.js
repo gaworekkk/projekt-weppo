@@ -335,15 +335,6 @@ app.post('/checkout', authorize(), async (req, res) => {
         return res.redirect('/cart');
     }
 
-    // Zapis zmian w produktach (trwała aktualizacja w bazie)
-    for (const [idStr, count] of Object.entries(cartCounts)) {
-        const id = parseInt(idStr);
-        const product = products.find(p => p.id === id);
-        if (product) {
-            await db.updateProductQuantity(id, product.quantity);
-        }
-    }
-
     // Uwzględnienie kodu promocyjnego w cenie końcowej zamówienia
     if (req.signedCookies.promoCode) {
         const codes = await db.getPromoCodes();
@@ -582,14 +573,12 @@ app.listen(port, () => {
 });
 
 
-app.get('/account', authorize(), (req, res) => {
-    const mockOrders = [
-        // { id: 1001, date: '2026-01-15', total: 299.99, status: 'Completed', itemsCount: 2 },
-        // { id: 1002, date: '2026-01-28', total: 4500.00, status: 'Processing', itemsCount: 1 },
-        // { id: 1003, date: '2026-02-01', total: 49.90, status: 'Cancelled', itemsCount: 3 }
-    ];
-    res.render('account', {
-        orders: mockOrders,
-        user: req.user
-    });
+app.get('/account', authorize(), async (req, res) => {
+    try {
+        const orders = await db.getOrders(req.user.id);
+        res.render('account', { orders, user: req.user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error loading account data');
+    }
 });

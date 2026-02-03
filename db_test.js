@@ -1,4 +1,3 @@
-require('dotenv').config();
 const db = require('./db');
 
 async function testDB() {
@@ -37,6 +36,14 @@ async function testDB() {
             quantity: 10,
             categoryId
         };
+        const testProductdelete = {
+            name: 'Delete Product',
+            description: 'Opis testowego produktu',
+            price: 99.99,
+            quantity: 10,
+            categoryId
+        };
+        await db.saveProduct(testProductdelete);
         await db.saveProduct(testProduct);
         console.log('Dodano testowy produkt');
 
@@ -64,25 +71,25 @@ async function testDB() {
 
         const user = updatedUsers.find(u => u.username === 'testuser@example.com');
 
-        // await db.saveOrder({
-        //     userId: user.id,
-        //     items: orderItems,
-        //     total: orderItems.reduce((acc, i) => acc + i.price * i.quantity, 0)
-        // });
-        // console.log('Złożono testowe zamówienie');
+        await db.saveOrder({
+            userId: user.id,
+            items: orderItems,
+            total: orderItems.reduce((acc, i) => acc + i.price * i.quantity, 0)
+        });
+        console.log('Złożono testowe zamówienie');
 
         // 7️⃣ Czyszczenie testowych danych
         const newproducts = await db.getProducts();
-        const newtestProduct = newproducts.find(p => p.name === 'Test Product');
-        console.log(newtestProduct);
+        const deleteProduct = newproducts.find(p => p.name === 'Delete Product');
+        console.log(deleteProduct);
 
-        await db.updateProductQuantity(newtestProduct.id, 100);
+        await db.updateProductQuantity(deleteProduct.id, 100);
         const pr = await db.getProducts();
-        if (pr.find(p => p.id === newtestProduct.id).quantity === 100) {
+        if (pr.find(p => p.id === deleteProduct.id).quantity === 100) {
             console.log('Zaktualizowano ilość testowego produktu');
         }
-        if (newtestProduct) {
-            await db.deleteProduct(newtestProduct.id);
+        if (deleteProduct) {
+            await db.deleteProduct(deleteProduct.id);
         }
         await db.deletePromoCode('TEST10');
         console.log('Usunięto testowe dane');
